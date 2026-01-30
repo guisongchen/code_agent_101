@@ -20,16 +20,23 @@ cd chat_shell_101
 
 2. 创建虚拟环境并安装依赖：
 ```bash
+# 确保使用 Python 3.10-3.13 版本（Python 3.14 与 LangChain 不兼容）
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
 # 或 venv\Scripts\activate  # Windows
-pip install -e .
+# 使用 uv 安装依赖（更快更可靠）
+uv sync
 ```
 
 3. 配置环境变量：
 ```bash
 cp .env.example .env
 # 编辑 .env 文件，设置你的 OpenAI API 密钥
+```
+
+**注意**：本项目使用 [uv](https://github.com/astral-sh/uv) 作为包管理工具，它比 pip 更快更可靠。如果你还没有安装 uv，可以使用以下命令安装：
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ## 使用方法
@@ -70,7 +77,7 @@ chat_shell_101/
 
 安装开发依赖：
 ```bash
-pip install -e ".[dev]"
+uv sync --extra dev
 ```
 
 运行测试：
