@@ -33,23 +33,26 @@ class ToolRegistry:
 
     def to_langchain_tools(self):
         """Convert tools to LangChain tool format."""
-        from langchain.tools import StructuredTool
+        from langchain.tools import tool
         langchain_tools = []
 
-        for tool in self._tools.values():
-            # Create a wrapper function that matches LangChain's expected signature
-            async def execute_wrapper(**kwargs):
-                input_data = tool.input_schema(**kwargs)
-                result = await tool.execute(input_data)
-                if result.error:
-                    raise ValueError(result.error)
-                return result.result
-
-            langchain_tool = StructuredTool.from_function(
-                func=execute_wrapper,
-                name=tool.name,
-                description=tool.description,
-                args_schema=tool.input_schema,
+        for current_tool in self._tools.values():
+            # Capture current_tool in a closure using a factory function
+            tool_instance = current_tool
+            def make_tool_func(tool):
+                async def tool_func(**kwargs):
+                    input_data = tool.input_schema(**kwargs)
+                    result = await tool.execute(input_data)
+                    if result.error:
+                        raise ValueError(result.error)
+                    return result.result
+                return tool_func
+            tool_func = make_tool_func(tool_instance)
+            tool_func.__name__ = tool_instance.name
+            langchain_tool = tool(
+                tool_func,
+                description=tool_instance.description,
+                args_schema=tool_instance.input_schema
             )
             langchain_tools.append(langchain_tool)
 

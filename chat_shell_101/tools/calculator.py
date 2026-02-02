@@ -36,6 +36,8 @@ class CalculatorTool(BaseTool):
 
     def _safe_eval(self, expression: str) -> Any:
         """Safely evaluate arithmetic expression."""
+        # Normalize whitespace
+        expression = ' '.join(expression.split())
         try:
             # Parse expression into AST
             tree = ast.parse(expression, mode='eval')

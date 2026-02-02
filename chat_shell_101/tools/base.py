@@ -21,9 +21,9 @@ class ToolOutput(BaseModel):
 class BaseTool(ABC):
     """Abstract base class for tools."""
 
-    name: str
-    description: str
-    input_schema: type[ToolInput]
+    name: str = ""
+    description: str = ""
+    input_schema: type[ToolInput] = ToolInput
 
     @abstractmethod
     async def execute(self, input_data: ToolInput) -> ToolOutput:

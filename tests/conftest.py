@@ -12,6 +12,10 @@ from typing import AsyncGenerator, Dict, Generator, List
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
+# Register pytest-asyncio plugin
+pytest_plugins = ["pytest_asyncio"]
+
 from pydantic import BaseModel
 
 # Mock problematic imports at the module level before importing anything
