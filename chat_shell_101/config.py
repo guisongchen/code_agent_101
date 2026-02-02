@@ -17,7 +17,7 @@ class OpenAIConfig(BaseModel):
     """OpenAI configuration."""
     api_key: str = Field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
     model: str = Field(default_factory=lambda: os.getenv("CHAT_SHELL_DEFAULT_MODEL", "gpt-4"))
-    base_url: Optional[str] = None
+    base_url: Optional[str] = Field(default_factory=lambda: os.getenv("BASE_URL") or None)
     temperature: float = 0.7
     max_tokens: int = 4096
 

@@ -1,90 +1,124 @@
 # Chat Shell 101
 
-一个简化的命令行AI聊天工具，基于LangGraph和OpenAI GPT-4。
+A simplified CLI chat tool with LangGraph and OpenAI/DeepSeek integration.
 
-## 功能特性
+## Features
 
-- 交互式命令行聊天界面
-- 支持多轮对话（历史记录）
-- 显示AI思考过程（可选）
-- 内置计算器工具
-- JSON文件存储历史记录
+- Interactive command-line chat interface
+- Multi-turn conversation with history persistence
+- Visualize AI thinking process (optional)
+- Built-in calculator tool with safe expression evaluation
+- JSON file storage for session history
+- Memory storage for temporary sessions
+- Support for custom API endpoints (DeepSeek compatible)
+- Extensible tool system and storage backends
 
-## 安装
+## Installation
 
-1. 克隆项目：
+1. Clone the repository:
 ```bash
 git clone <repository-url>
 cd chat_shell_101
 ```
 
-2. 创建虚拟环境并安装依赖：
+2. Install dependencies using uv (recommended):
 ```bash
-# 确保使用 Python 3.10-3.13 版本（Python 3.14 与 LangChain 不兼容）
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# 或 venv\Scripts\activate  # Windows
-# 使用 uv 安装依赖（更快更可靠）
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Create virtual environment and install dependencies
 uv sync
 ```
 
-3. 配置环境变量：
+3. Configure environment variables:
 ```bash
 cp .env.example .env
-# 编辑 .env 文件，设置你的 OpenAI API 密钥
+# Edit .env file to set your OpenAI/DeepSeek API key
 ```
 
-**注意**：本项目使用 [uv](https://github.com/astral-sh/uv) 作为包管理工具，它比 pip 更快更可靠。如果你还没有安装 uv，可以使用以下命令安装：
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+## Usage
 
-## 使用方法
-
-启动交互式聊天：
+Start interactive chat:
 ```bash
 chat-shell chat
 ```
 
-启动聊天并显示思考过程：
+Start chat with thinking process shown:
 ```bash
 chat-shell chat --show-thinking
 ```
 
-使用特定模型：
+Use specific model (default: deepseek-chat):
 ```bash
 chat-shell chat --model gpt-4-turbo
 ```
 
-## 聊天会话中的命令
+Use memory storage (no persistence):
+```bash
+chat-shell chat --storage memory
+```
 
-- `exit` 或 `quit`：退出聊天
-- `/clear`：清除当前会话的历史记录
-- `/history`：显示当前会话的历史记录
+Use with DeepSeek API:
+```bash
+export BASE_URL=https://api.deepseek.com
+export OPENAI_API_KEY=your-deepseek-api-key
+chat-shell chat
+```
 
-## 项目结构
+## Commands in Chat Session
+
+- `exit` or `quit`: Exit chat
+- `/clear`: Clear current session history
+- `/history`: Show current session history
+
+## Example Scripts
+
+The project includes comprehensive example scripts in the `examples/` directory:
+
+```bash
+# Basic usage patterns
+python examples/basic_usage.py
+
+# Advanced configuration and custom tools
+python examples/advanced_config.py
+```
+
+## Project Structure
 
 ```
 chat_shell_101/
-├── src/chat_shell_101/     # 源代码
-├── tests/                  # 测试文件
-├── pyproject.toml          # 项目配置
-├── .env.example           # 环境变量示例
-└── README.md              # 项目说明
+├── chat_shell_101/          # Main package
+│   ├── agent.py            # LangGraph ReAct agent
+│   ├── cli.py              # CLI interface with Click
+│   ├── config.py           # Configuration management
+│   ├── storage/            # Storage abstractions
+│   └── tools/              # Tool system
+├── examples/               # Usage examples
+├── doc/                    # Documentation
+├── pyproject.toml          # Project configuration (uv/hatch)
+├── .env.example           # Environment template
+└── README.md              # Project documentation
 ```
 
-## 开发
+## Development
 
-安装开发依赖：
+Install development dependencies:
 ```bash
 uv sync --extra dev
 ```
 
-运行测试：
+Run tests:
 ```bash
 pytest
 ```
 
-## 许可证
+Format code:
+```bash
+black chat_shell_101/
+isort chat_shell_101/
+flake8 chat_shell_101/
+```
+
+## License
 
 Apache 2.0

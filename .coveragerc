@@ -1,0 +1,27 @@
+[run]
+source = chat_shell_101
+omit =
+    */tests/*
+    */examples/*
+    */__pycache__/*
+    */.*
+    */site-packages/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if self.debug:
+    if settings.DEBUG
+    raise AssertionError
+    raise NotImplementedError
+    if 0:
+    if __name__ == .__main__.:
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+    @property
+    @.*\.setter
+
+fail_under = 80
+show_missing = true
+skip_covered = false
