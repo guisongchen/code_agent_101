@@ -3,14 +3,12 @@ LangGraph ReAct agent for Chat Shell 101.
 """
 
 import asyncio
-from typing import Dict, List, Any, AsyncGenerator
+from typing import Dict, List, Any, AsyncGenerator, Annotated
 from pydantic import BaseModel
 
 from langchain_openai import ChatOpenAI
-from langchain.tools import StructuredTool
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
 from langgraph.graph import StateGraph, END
-from langgraph.prebuilt import ToolExecutor, ToolInvocation
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langgraph.graph.message import add_messages
 
 from .config import config
@@ -20,8 +18,7 @@ from .utils import format_tool_call, format_tool_result, format_thinking
 
 class AgentState(BaseModel):
     """State for the agent graph."""
-    messages: List[Any] = []
-    next: str = "agent"
+    messages: Annotated[List[Any], add_messages] = []
 
 
 class ChatAgent:
@@ -30,7 +27,7 @@ class ChatAgent:
     def __init__(self):
         self.llm = None
         self.tools = []
-        self.tool_executor = None
+        self.tools_by_name = {}
         self.graph = None
         self._initialized = False
 
@@ -40,17 +37,24 @@ class ChatAgent:
             return
 
         # Initialize LLM
-        self.llm = ChatOpenAI(
-            model=config.openai.model,
-            api_key=config.openai.api_key,
-            temperature=config.openai.temperature,
-            max_tokens=config.openai.max_tokens,
-            streaming=True,
-        )
+        llm_kwargs = {
+            "model": config.openai.model,
+            "api_key": config.openai.api_key,
+            "temperature": config.openai.temperature,
+            "max_tokens": config.openai.max_tokens,
+            "streaming": True,
+        }
+        if config.openai.base_url:
+            llm_kwargs["base_url"] = config.openai.base_url
 
-        # Get tools from registry
+        self.llm = ChatOpenAI(**llm_kwargs)
+
+        # Get internal tools from registry (for execution)
+        self.internal_tools = tool_registry.get_all_tools()
+        self.tools_by_name = {tool.name: tool for tool in self.internal_tools}
+
+        # Get LangChain tools from registry (for LLM binding)
         self.tools = tool_registry.to_langchain_tools()
-        self.tool_executor = ToolExecutor(self.tools)
 
         # Bind tools to LLM
         self.llm_with_tools = self.llm.bind_tools(self.tools)
@@ -65,51 +69,47 @@ class ChatAgent:
         # Define nodes
         async def agent_node(state: AgentState):
             """Node that calls the agent."""
-            # Get the last message
-            last_message = state.messages[-1]
-
             # Call the LLM
             response = await self.llm_with_tools.ainvoke(state.messages)
-
-            # Add the response to messages
-            state.messages.append(response)
-
-            # Check if the agent wants to use a tool
-            if response.tool_calls:
-                return {"next": "tools"}
-            else:
-                return {"next": END}
+            return {"messages": [response]}
 
         async def tools_node(state: AgentState):
             """Node that executes tools."""
             last_message = state.messages[-1]
 
             tool_calls = last_message.tool_calls
-            tool_invocations = [
-                ToolInvocation(
-                    tool=tool_call["name"],
-                    tool_input=tool_call["args"],
-                )
-                for tool_call in tool_calls
-            ]
-
-            # Execute tools in parallel
-            tool_outputs = await self.tool_executor.abatch(tool_invocations)
-
-            # Create tool messages
             tool_messages = []
-            for tool_call, output in zip(tool_calls, tool_outputs):
-                tool_messages.append(
-                    AIMessage(
-                        content=f"Tool call: {tool_call['name']} with args: {tool_call['args']}. Result: {output}",
-                        tool_call_id=tool_call["id"],
+
+            for tool_call in tool_calls:
+                tool_name = tool_call["name"]
+                tool_args = tool_call["args"]
+                tool_call_id = tool_call["id"]
+
+                try:
+                    # Execute the tool
+                    result = await self._execute_tool(tool_name, tool_args)
+                    tool_messages.append(
+                        ToolMessage(
+                            content=str(result),
+                            tool_call_id=tool_call_id,
+                        )
                     )
-                )
+                except Exception as e:
+                    tool_messages.append(
+                        ToolMessage(
+                            content=f"Error: {e}",
+                            tool_call_id=tool_call_id,
+                        )
+                    )
 
-            # Add tool messages to state
-            state.messages.extend(tool_messages)
+            return {"messages": tool_messages}
 
-            return {"next": "agent"}
+        def should_continue(state: AgentState):
+            """Determine whether to continue to tools or end."""
+            last_message = state.messages[-1]
+            if last_message.tool_calls:
+                return "tools"
+            return END
 
         # Build the graph
         workflow = StateGraph(AgentState)
@@ -122,13 +122,27 @@ class ChatAgent:
         workflow.set_entry_point("agent")
         workflow.add_conditional_edges(
             "agent",
-            lambda state: "tools" if state.messages[-1].tool_calls else END,
+            should_continue,
             {"tools": "tools", END: END}
         )
         workflow.add_edge("tools", "agent")
 
         # Compile the graph
         return workflow.compile()
+
+    async def _execute_tool(self, tool_name: str, tool_args: Dict[str, Any]) -> Any:
+        """Execute a tool by name with the given arguments."""
+        if tool_name not in self.tools_by_name:
+            raise ValueError(f"Tool not found: {tool_name}")
+
+        tool = self.tools_by_name[tool_name]
+        input_data = tool.input_schema(**tool_args)
+        result = await tool.execute(input_data)
+
+        if result.error:
+            raise ValueError(result.error)
+
+        return result.result
 
     async def stream(
         self,
@@ -152,21 +166,32 @@ class ChatAgent:
         # Initialize state
         initial_state = AgentState(messages=lc_messages)
 
+        # Track which tool calls we've already processed
+        processed_tool_calls = set()
+
         # Run the graph
         async for event in self.graph.astream(initial_state, stream_mode="values"):
             # Get the latest message
             if "messages" in event and event["messages"]:
-                last_message = event["messages"][-1]
+                messages_list = event["messages"]
+                last_message = messages_list[-1]
 
                 if isinstance(last_message, AIMessage):
                     # Check if it's a tool call
                     if last_message.tool_calls:
                         for tool_call in last_message.tool_calls:
+                            tool_call_id = tool_call["id"]
+
+                            # Skip if we've already processed this tool call
+                            if tool_call_id in processed_tool_calls:
+                                continue
+                            processed_tool_calls.add(tool_call_id)
+
                             if show_thinking:
                                 yield {
                                     "type": "thinking",
                                     "data": {
-                                        "text": f"调用工具 {tool_call['name']} 参数: {tool_call['args']}"
+                                        "text": f"Calling tool {tool_call['name']} with args: {tool_call['args']}"
                                     }
                                 }
                             yield {
@@ -177,22 +202,32 @@ class ChatAgent:
                                 }
                             }
 
-                            # Execute the tool
-                            tool_invocation = ToolInvocation(
-                                tool=tool_call["name"],
-                                tool_input=tool_call["args"],
-                            )
-                            try:
-                                result = await self.tool_executor.ainvoke(tool_invocation)
-                                yield {
-                                    "type": "tool_result",
-                                    "data": {"result": result}
-                                }
-                            except Exception as e:
-                                yield {
-                                    "type": "error",
-                                    "data": {"message": f"工具执行错误: {e}"}
-                                }
+                            # Find the corresponding ToolMessage in the state
+                            tool_result_found = False
+                            for msg in reversed(messages_list):
+                                if isinstance(msg, ToolMessage) and msg.tool_call_id == tool_call_id:
+                                    yield {
+                                        "type": "tool_result",
+                                        "data": {"result": msg.content}
+                                    }
+                                    tool_result_found = True
+                                    break
+
+                            if not tool_result_found:
+                                # Tool hasn't been executed yet, execute it now
+                                try:
+                                    result = await self._execute_tool(
+                                        tool_call["name"], tool_call["args"]
+                                    )
+                                    yield {
+                                        "type": "tool_result",
+                                        "data": {"result": result}
+                                    }
+                                except Exception as e:
+                                    yield {
+                                        "type": "error",
+                                        "data": {"message": f"Tool execution error: {e}"}
+                                    }
                     else:
                         # It's a regular response
                         if last_message.content:
