@@ -17,7 +17,7 @@ A simplified CLI chat tool with LangGraph and OpenAI/DeepSeek integration.
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/guisongchen/chat_shell_101.git
 cd chat_shell_101
 ```
 
