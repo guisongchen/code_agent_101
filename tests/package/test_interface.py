@@ -15,6 +15,8 @@ from chat_shell_101.package.interface import (
 )
 
 
+@pytest.mark.epic_4
+@pytest.mark.unit
 @pytest.mark.asyncio
 class TestChatInput:
     """Test ChatInput model."""
@@ -42,6 +44,8 @@ class TestChatInput:
         assert inp.metadata == {"key": "value"}
 
 
+@pytest.mark.epic_4
+@pytest.mark.unit
 @pytest.mark.asyncio
 class TestInterfaceConfig:
     """Test InterfaceConfig dataclass."""
@@ -74,6 +78,8 @@ class TestInterfaceConfig:
         assert config.enable_streaming is False
 
 
+@pytest.mark.epic_4
+@pytest.mark.unit
 @pytest.mark.asyncio
 class TestDirectChatInterface:
     """Test DirectChatInterface implementation."""
@@ -281,19 +287,3 @@ class TestDirectChatInterface:
         assert interface._sessions["test"][1]["content"] == "Assistant response"
 
 
-@pytest.mark.epic_4
-@pytest.mark.unit
-class TestPackageModeEpic4:
-    """Epic 4 specific tests for Package Mode."""
-
-    def test_chat_interface_is_abstract(self):
-        """Test that ChatInterface is abstract."""
-        with pytest.raises(TypeError):
-            ChatInterface()
-
-    def test_direct_chat_interface_instantiation(self):
-        """Test that DirectChatInterface can be instantiated."""
-        config = InterfaceConfig()
-        interface = DirectChatInterface(config)
-        assert interface is not None
-        assert interface.config == config

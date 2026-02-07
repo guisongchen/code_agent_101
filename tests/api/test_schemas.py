@@ -16,6 +16,8 @@ from chat_shell_101.api.schemas import (
 )
 
 
+@pytest.mark.epic_4
+@pytest.mark.unit
 class TestChatSchemas:
     """Test API schema models."""
 
@@ -112,12 +114,6 @@ class TestChatSchemas:
         assert error.error_code == "INVALID_REQUEST"
         assert error.message == "Invalid request parameters"
         assert error.details == {"field": "temperature"}
-
-
-@pytest.mark.epic_4
-@pytest.mark.unit
-class TestAPISchemasEpic4:
-    """Epic 4 specific tests for API schemas."""
 
     def test_message_role_enum(self):
         """Test MessageRole enum values."""

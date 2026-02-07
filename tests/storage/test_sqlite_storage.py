@@ -36,6 +36,8 @@ async def sqlite_history_storage(temp_db_path):
     yield storage
 
 
+@pytest.mark.epic_4
+@pytest.mark.unit
 @pytest.mark.asyncio
 class TestSQLiteHistoryStorage:
     """Test SQLite history storage implementation."""
@@ -144,6 +146,8 @@ class TestSQLiteHistoryStorage:
         assert retrieved[0].content == "You are a helpful assistant."
 
 
+@pytest.mark.epic_4
+@pytest.mark.unit
 @pytest.mark.asyncio
 class TestSQLiteStorage:
     """Test SQLite storage provider implementation."""
@@ -168,12 +172,3 @@ class TestSQLiteStorage:
             _ = storage.history
 
 
-@pytest.mark.epic_4
-@pytest.mark.unit
-class TestSQLiteStorageEpic4:
-    """Epic 4 specific tests for SQLite storage."""
-
-    def test_epic_4_sqlite_storage_creation(self):
-        """Test that SQLiteStorage can be instantiated."""
-        storage = SQLiteStorage()
-        assert storage is not None
