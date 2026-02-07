@@ -16,9 +16,19 @@ class AgentConfig:
     """
 
     # Model settings
+    provider: Optional[str] = None
+    """LLM provider (openai, anthropic, google). Auto-detected if not specified."""
+
     model: str = "gpt-4"
     temperature: float = 0.7
     max_tokens: int = 4096
+
+    # Fallback configuration
+    fallback_models: List[str] = field(default_factory=list)
+    """List of fallback model names to try if primary fails."""
+
+    enable_fallback: bool = False
+    """Enable automatic fallback to backup models on failures."""
 
     # Tool execution settings
     max_iterations: int = 10

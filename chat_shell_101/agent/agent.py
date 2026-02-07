@@ -5,7 +5,6 @@ LangGraph ReAct agent for Chat Shell 101.
 from typing import Dict, List, Any, AsyncGenerator, Annotated, Optional
 from pydantic import BaseModel, Field
 
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
@@ -15,6 +14,7 @@ from ..config import config as global_config
 from ..tools.registry import tool_registry
 from ..tools.base import PromptModifierTool
 from ..utils import format_tool_call, format_tool_result, format_thinking
+from ..models import ModelFactory, ModelConfig, ProviderConfig
 from .config import AgentConfig
 from .compressor import MessageCompressor, CompressionStrategy
 
@@ -64,18 +64,19 @@ class ChatAgent:
         if self._initialized:
             return
 
-        # Initialize LLM
-        llm_kwargs = {
-            "model": self.config.model or global_config.openai.model,
-            "api_key": global_config.openai.api_key,
-            "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens,
-            "streaming": True,
-        }
-        if global_config.openai.base_url:
-            llm_kwargs["base_url"] = global_config.openai.base_url
+        # Initialize LLM using ModelFactory
+        model_config = ModelConfig(
+            model=self.config.model or global_config.openai.model,
+            temperature=self.config.temperature,
+            max_tokens=self.config.max_tokens,
+            streaming=True,
+            provider_config=ProviderConfig(
+                api_key=global_config.openai.api_key,
+                base_url=global_config.openai.base_url,
+            ),
+        )
 
-        self.llm = ChatOpenAI(**llm_kwargs)
+        self.llm = ModelFactory.create_model_from_config(model_config)
 
         # Get internal tools from registry (for execution)
         all_tools = tool_registry.get_all_tools()

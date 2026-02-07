@@ -6,6 +6,7 @@ from typing import List, Optional, TYPE_CHECKING
 
 from langgraph.checkpoint.memory import MemorySaver
 
+from ..models import ModelProvider
 from .agent import ChatAgent
 from .config import AgentConfig
 
@@ -44,6 +45,18 @@ class LangGraphAgentBuilder:
     def __init__(self):
         self._config = AgentConfig()
         self._checkpointer: Optional["BaseCheckpointSaver"] = None
+
+    def with_provider(self, provider: str) -> "LangGraphAgentBuilder":
+        """Set the LLM provider.
+
+        Args:
+            provider: The provider name (openai, anthropic, google, azure).
+
+        Returns:
+            Self for method chaining.
+        """
+        self._config.provider = provider
+        return self
 
     def with_model(self, model: str) -> "LangGraphAgentBuilder":
         """Set the model to use.
@@ -115,6 +128,31 @@ class LangGraphAgentBuilder:
             Self for method chaining.
         """
         self._config.system_prompt = prompt
+        return self
+
+    def with_fallbacks(self, fallback_models: List[str]) -> "LangGraphAgentBuilder":
+        """Set fallback models for automatic failover.
+
+        Args:
+            fallback_models: List of model names to try if primary fails.
+
+        Returns:
+            Self for method chaining.
+        """
+        self._config.fallback_models = fallback_models
+        self._config.enable_fallback = len(fallback_models) > 0
+        return self
+
+    def with_fallback_enabled(self, enabled: bool = True) -> "LangGraphAgentBuilder":
+        """Enable or disable automatic fallback to backup models.
+
+        Args:
+            enabled: Whether to enable fallback support.
+
+        Returns:
+            Self for method chaining.
+        """
+        self._config.enable_fallback = enabled
         return self
 
     def with_memory_checkpoint(self) -> "LangGraphAgentBuilder":

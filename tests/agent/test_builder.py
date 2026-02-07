@@ -3,7 +3,7 @@ Tests for LangGraphAgentBuilder - Epic 1: Core Agent System.
 """
 
 import pytest
-from chat_shell_101.agent.builder import LangGraphAgentBuilder
+from chat_shell_101.agent.builder import LangGraphAgentBuilder, SQLITE_AVAILABLE
 from chat_shell_101.agent.config import AgentConfig
 from chat_shell_101.agent.agent import ChatAgent
 
@@ -63,6 +63,7 @@ class TestLangGraphAgentBuilder:
         assert agent.config.checkpoint_type == "memory"
 
     @pytest.mark.asyncio
+    @pytest.mark.skipif(not SQLITE_AVAILABLE, reason="SQLite checkpoint support not available")
     async def test_with_sqlite_checkpoint(self):
         """Test enabling SQLite checkpoint."""
         db_path = "/tmp/test_checkpoint.db"

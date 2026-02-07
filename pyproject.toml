@@ -23,6 +23,28 @@ dependencies = [
     "tiktoken>=0.5.0",
 ]
 
+[project.optional-dependencies]
+anthropic = [
+    "langchain-anthropic>=0.1.0",
+]
+google = [
+    "langchain-google-genai>=1.0.0",
+]
+all = [
+    "langchain-anthropic>=0.1.0",
+    "langchain-google-genai>=1.0.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "pytest-xdist>=3.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+]
+
 [project.scripts]
 chat-shell = "chat_shell_101.cli:main"
 
@@ -62,16 +84,4 @@ markers = [
     "epic_4: Epic 4 - Deployment Modes",
     "epic_5: Epic 5 - Streaming Response System",
     "epic_6: Epic 6 - Storage Layer",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
-    "pytest-mock>=3.10.0",
-    "pytest-xdist>=3.0.0",
-    "black>=23.0.0",
-    "isort>=5.12.0",
-    "flake8>=6.0.0",
 ]
