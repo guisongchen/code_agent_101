@@ -2,6 +2,7 @@
 LangGraph ReAct agent for Chat Shell 101.
 """
 
+import asyncio
 from typing import Dict, List, Any, AsyncGenerator, Annotated, Optional
 from pydantic import BaseModel, Field
 
@@ -242,8 +243,19 @@ class ChatAgent:
         messages: List[Dict[str, str]],
         show_thinking: bool = False,
         thread_id: Optional[str] = None,
+        cancellation_event: Optional[asyncio.Event] = None,
     ) -> AsyncGenerator[Dict[str, Any], None]:
-        """Stream agent responses with token-level streaming."""
+        """Stream agent responses with token-level streaming.
+
+        Args:
+            messages: List of messages in {"role": str, "content": str} format
+            show_thinking: Whether to emit thinking events for tool calls
+            thread_id: Optional thread ID for checkpointing
+            cancellation_event: Optional asyncio.Event for external cancellation
+
+        Yields:
+            Dict with "type" and "data" keys, with optional "offset" for ordering
+        """
         if not self._initialized:
             await self.initialize()
 
@@ -260,53 +272,144 @@ class ChatAgent:
         # Prepare config for checkpointing
         run_config = {"configurable": {"thread_id": thread_id}} if thread_id else None
 
+        # Track offset for event ordering
+        current_offset = 0
+
+        def get_next_offset() -> int:
+            nonlocal current_offset
+            offset = current_offset
+            current_offset += 1
+            return offset
+
+        # Check for cancellation helper
+        def check_cancellation():
+            if cancellation_event and cancellation_event.is_set():
+                raise asyncio.CancelledError("Stream cancelled by external event")
+
         # Accumulate the full response for tool call handling
         full_response = None
 
-        # Stream from LLM
-        async for chunk in self.llm_with_tools.astream(lc_messages):
-            # Accumulate chunks to build the full message
-            if full_response is None:
-                full_response = chunk
-            else:
-                full_response += chunk
+        try:
+            # Stream from LLM
+            async for chunk in self.llm_with_tools.astream(lc_messages):
+                # Check for cancellation
+                check_cancellation()
 
-            # Stream content tokens as they arrive
-            if chunk.content:
-                yield {"type": "content", "data": {"text": chunk.content}}
+                # Accumulate chunks to build the full message
+                if full_response is None:
+                    full_response = chunk
+                else:
+                    full_response += chunk
 
-        # Handle complete tool calls after streaming finishes
-        if full_response and full_response.tool_calls:
-            for tool_call in full_response.tool_calls:
-                tool_name = tool_call.get("name", "")
-                tool_args = tool_call.get("args", {})
-                tool_call_id = tool_call.get("id", "")
-
-                # Skip incomplete tool calls
-                if not tool_name or not tool_call_id:
-                    continue
-
-                if show_thinking:
+                # Stream content tokens as they arrive
+                if chunk.content:
                     yield {
-                        "type": "thinking",
-                        "data": {"text": f"Calling tool {tool_name}"}
+                        "type": "content",
+                        "data": {"text": chunk.content},
+                        "offset": get_next_offset(),
                     }
-                yield {"type": "tool_call", "data": {"tool": tool_name, "input": tool_args}}
 
-                try:
-                    result = await self._execute_tool(tool_name, tool_args)
-                    yield {"type": "tool_result", "data": {"result": result}}
+            # Handle complete tool calls after streaming finishes
+            if full_response and full_response.tool_calls:
+                for tool_call in full_response.tool_calls:
+                    # Check for cancellation before each tool
+                    check_cancellation()
 
-                    # Get follow-up response after tool execution
-                    lc_messages.append(full_response)
-                    lc_messages.append(ToolMessage(content=str(result), tool_call_id=tool_call_id))
+                    tool_name = tool_call.get("name", "")
+                    tool_args = tool_call.get("args", {})
+                    tool_call_id = tool_call.get("id", "")
 
-                    # Stream the follow-up response token by token
-                    async for followup in self.llm_with_tools.astream(lc_messages):
-                        if followup.content:
-                            yield {"type": "content", "data": {"text": followup.content}}
-                except Exception as e:
-                    yield {"type": "error", "data": {"message": str(e)}}
+                    # Skip incomplete tool calls
+                    if not tool_name or not tool_call_id:
+                        continue
+
+                    if show_thinking:
+                        yield {
+                            "type": "thinking",
+                            "data": {"text": f"Calling tool {tool_name}"},
+                            "offset": get_next_offset(),
+                        }
+
+                    yield {
+                        "type": "tool_call",
+                        "data": {
+                            "tool": tool_name,
+                            "input": tool_args,
+                            "tool_call_id": tool_call_id,
+                        },
+                        "offset": get_next_offset(),
+                    }
+
+                    try:
+                        result = await self._execute_tool(tool_name, tool_args)
+                        yield {
+                            "type": "tool_result",
+                            "data": {
+                                "tool": tool_name,
+                                "tool_call_id": tool_call_id,
+                                "result": result,
+                            },
+                            "offset": get_next_offset(),
+                        }
+
+                        # Get follow-up response after tool execution
+                        lc_messages.append(full_response)
+                        lc_messages.append(ToolMessage(content=str(result), tool_call_id=tool_call_id))
+
+                        # Stream the follow-up response token by token
+                        async for followup in self.llm_with_tools.astream(lc_messages):
+                            check_cancellation()
+                            if followup.content:
+                                yield {
+                                    "type": "content",
+                                    "data": {"text": followup.content},
+                                    "offset": get_next_offset(),
+                                }
+                    except Exception as e:
+                        error_code = self._classify_error(e)
+                        yield {
+                            "type": "error",
+                            "data": {
+                                "message": str(e),
+                                "error_code": error_code,
+                                "tool_name": tool_name,
+                                "tool_call_id": tool_call_id,
+                            },
+                            "offset": get_next_offset(),
+                        }
+
+        except asyncio.CancelledError:
+            # Re-raise cancellation for proper cleanup
+            raise
+        except Exception as e:
+            # Handle unexpected errors with structured format
+            error_code = self._classify_error(e)
+            yield {
+                "type": "error",
+                "data": {
+                    "message": str(e),
+                    "error_code": error_code,
+                    "error_type": type(e).__name__,
+                },
+                "offset": get_next_offset(),
+            }
+            raise
+
+    def _classify_error(self, error: Exception) -> str:
+        """Classify an error into a machine-readable error code."""
+        error_type = type(error).__name__
+
+        error_map = {
+            "ToolIterationLimitError": "TOOL_ITERATION_LIMIT",
+            "ValueError": "INVALID_INPUT",
+            "KeyError": "MISSING_KEY",
+            "TypeError": "TYPE_ERROR",
+            "AttributeError": "ATTRIBUTE_ERROR",
+            "ConnectionError": "CONNECTION_ERROR",
+            "TimeoutError": "TIMEOUT_ERROR",
+        }
+
+        return error_map.get(error_type, "UNKNOWN_ERROR")
 
     async def invoke(
         self,

@@ -35,6 +35,7 @@ class ChatRequest(BaseModel):
     tools: Optional[List[str]] = Field(None, description="Tools to enable")
     stream: bool = Field(True, description="Enable streaming response")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Optional metadata")
+    offset: Optional[int] = Field(None, description="Offset to resume from for stream recovery")
 
 
 class ChatResponse(BaseModel):
@@ -57,9 +58,12 @@ class ChatEvent(BaseModel):
         "error",  # Error event
         "complete",  # Session complete
         "cancelled",  # Session cancelled
+        "offset",  # Recovery checkpoint
     ]
     data: Dict[str, Any]
     timestamp: datetime = Field(default_factory=datetime.now)
+    offset: Optional[int] = Field(None, description="Event offset for ordering and recovery")
+    sequence: Optional[int] = Field(None, description="Global sequence number")
 
 
 class SessionStatus(BaseModel):
@@ -98,3 +102,34 @@ class ErrorResponse(BaseModel):
     error_code: str
     message: str
     details: Optional[Dict[str, Any]] = None
+
+
+class StreamRecoveryRequest(BaseModel):
+    """Request to recover a stream from a specific offset."""
+
+    stream_id: str = Field(..., description="Stream to recover")
+    offset: int = Field(..., description="Offset to resume from")
+    client_id: Optional[str] = Field(None, description="Client ID for tracking")
+
+
+class StreamRecoveryResponse(BaseModel):
+    """Response for stream recovery request."""
+
+    stream_id: str
+    can_recover: bool
+    from_offset: int
+    available_offsets: Dict[str, Any]
+    message: Optional[str] = None
+
+
+class StreamStatusExtended(BaseModel):
+    """Extended stream status with buffer and recovery info."""
+
+    stream_id: str
+    session_id: str
+    status: Literal["pending", "running", "completed", "error", "cancelled"]
+    current_offset: int
+    created_at: str
+    updated_at: str
+    buffer: Dict[str, Any]
+    client_count: int
