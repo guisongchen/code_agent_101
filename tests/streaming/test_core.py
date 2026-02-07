@@ -420,6 +420,8 @@ class TestStreamingCoreIntegration:
             async def error_generator(ctx: StreamContext) -> AsyncGenerator[ChunkEvent, None]:
                 # offset=0 is a placeholder - StreamingCore will assign actual offsets
                 yield ChunkEvent(offset=0, session_id="test", text="Start")
+                # Small delay to allow event to be processed before error
+                await asyncio.sleep(0.01)
                 raise ValueError("Test error")
 
             await core.start_stream("stream-1", error_generator)

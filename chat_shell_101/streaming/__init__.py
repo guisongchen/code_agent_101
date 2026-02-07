@@ -20,7 +20,7 @@ from .events import (
 from .state import StreamingState, StreamSession
 from .buffer import EventBuffer
 from .emitter import SSEEmitter, ClientConnection
-from .core import StreamingCore
+from .core import StreamingCore, StreamConfig, StreamContext, get_streaming_core, set_streaming_core
 from .exceptions import (
     StreamingError,
     StreamNotFoundError,
@@ -53,6 +53,10 @@ __all__ = [
     "ClientConnection",
     # Core
     "StreamingCore",
+    "StreamConfig",
+    "StreamContext",
+    "get_streaming_core",
+    "set_streaming_core",
     # Exceptions
     "StreamingError",
     "StreamNotFoundError",
