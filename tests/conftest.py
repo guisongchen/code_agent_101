@@ -3,7 +3,7 @@ Pytest configuration and shared fixtures.
 """
 
 import pytest
-from chat_shell_101.agent.config import AgentConfig
+from chat_shell.agent.config import AgentConfig
 
 
 @pytest.fixture

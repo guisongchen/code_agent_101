@@ -3,7 +3,7 @@ Tests for AgentConfig data class - Epic 1: Core Agent System.
 """
 
 import pytest
-from chat_shell_101.agent.config import AgentConfig
+from chat_shell.agent.config import AgentConfig
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_1]

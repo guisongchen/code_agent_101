@@ -3,7 +3,7 @@ Tests for model exceptions - Epic 2: Multi-Model LLM Integration.
 """
 
 import pytest
-from chat_shell_101.models.exceptions import (
+from chat_shell.models.exceptions import (
     ModelError,
     ModelNotSupportedError,
     ModelInitializationError,

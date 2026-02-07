@@ -6,21 +6,21 @@ import pytest
 import asyncio
 from typing import AsyncGenerator
 
-from chat_shell_101.streaming.core import (
+from chat_shell.streaming.core import (
     StreamingCore,
     StreamConfig,
     StreamContext,
     get_streaming_core,
     set_streaming_core,
 )
-from chat_shell_101.streaming.events import (
+from chat_shell.streaming.events import (
     ChunkEvent,
     CompleteEvent,
     ErrorEvent,
     EventType,
 )
-from chat_shell_101.streaming.state import StreamStatus
-from chat_shell_101.streaming.exceptions import (
+from chat_shell.streaming.state import StreamStatus
+from chat_shell.streaming.exceptions import (
     StreamNotFoundError,
     StreamAlreadyExistsError,
     StreamCompletedError,

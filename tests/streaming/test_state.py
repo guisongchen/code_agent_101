@@ -6,13 +6,13 @@ import pytest
 import asyncio
 from datetime import datetime, timedelta
 
-from chat_shell_101.streaming.state import (
+from chat_shell.streaming.state import (
     StreamingState,
     StreamSession,
     StreamStatus,
     ClientInfo,
 )
-from chat_shell_101.streaming.exceptions import (
+from chat_shell.streaming.exceptions import (
     StreamNotFoundError,
     StreamAlreadyExistsError,
     InvalidOffsetError,

@@ -3,7 +3,7 @@ Tests for ModelConfig and ProviderConfig - Epic 2: Multi-Model LLM Integration.
 """
 
 import pytest
-from chat_shell_101.models.config import ModelConfig, ProviderConfig
+from chat_shell.models.config import ModelConfig, ProviderConfig
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_2]

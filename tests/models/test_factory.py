@@ -3,9 +3,9 @@ Tests for ModelFactory - Epic 2: Multi-Model LLM Integration.
 """
 
 import pytest
-from chat_shell_101.models.factory import ModelFactory, ModelProvider
-from chat_shell_101.models.config import ModelConfig
-from chat_shell_101.models.exceptions import ModelNotSupportedError, ModelInitializationError
+from chat_shell.models.factory import ModelFactory, ModelProvider
+from chat_shell.models.config import ModelConfig
+from chat_shell.models.exceptions import ModelNotSupportedError, ModelInitializationError
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_2]
@@ -122,7 +122,7 @@ class TestModelFactoryFromConfig:
 
     def test_create_from_config_with_provider_config(self):
         """Test creating model from config with provider config."""
-        from chat_shell_101.models.config import ProviderConfig
+        from chat_shell.models.config import ProviderConfig
 
         config = ModelConfig(
             provider="openai",

@@ -10,8 +10,8 @@ from langchain_core.messages import (
     ToolMessage,
 )
 
-from chat_shell_101.models.converter import MessageConverter
-from chat_shell_101.models.exceptions import MessageConversionError
+from chat_shell.models.converter import MessageConverter
+from chat_shell.models.exceptions import MessageConversionError
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_2]

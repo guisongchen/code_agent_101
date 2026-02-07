@@ -7,7 +7,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from chat_shell_101.tools.file_reader import FileReaderTool, FileReaderInput
+from chat_shell.tools.file_reader import FileReaderTool, FileReaderInput
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_3]

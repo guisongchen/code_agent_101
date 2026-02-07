@@ -7,8 +7,8 @@ from unittest.mock import Mock, AsyncMock, patch
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
 from langgraph.checkpoint.memory import MemorySaver
 
-from chat_shell_101.agent.agent import ChatAgent, AgentState, ToolIterationLimitError
-from chat_shell_101.agent.config import AgentConfig
+from chat_shell.agent.agent import ChatAgent, AgentState, ToolIterationLimitError
+from chat_shell.agent.config import AgentConfig
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_1]
@@ -168,7 +168,7 @@ class TestPromptModifierIntegration:
 
     def test_get_modified_system_prompt_with_modifier(self, agent_config):
         """Test prompt with modifier tools."""
-        from chat_shell_101.tools.base import PromptModifierTool
+        from chat_shell.tools.base import PromptModifierTool
 
         class MockModifierTool:
             def modify_prompt(self, current_prompt, state):
@@ -217,7 +217,7 @@ class TestToolExecution:
     @pytest.mark.asyncio
     async def test_execute_tool_with_error(self, agent_config):
         """Test executing tool that returns error."""
-        from chat_shell_101.tools.base import BaseTool, ToolInput, ToolOutput
+        from chat_shell.tools.base import BaseTool, ToolInput, ToolOutput
 
         class ErrorTool(BaseTool):
             name = "error_tool"
@@ -236,7 +236,7 @@ class TestToolExecution:
     @pytest.mark.asyncio
     async def test_execute_tool_success(self, agent_config):
         """Test successful tool execution."""
-        from chat_shell_101.tools.base import BaseTool, ToolInput, ToolOutput
+        from chat_shell.tools.base import BaseTool, ToolInput, ToolOutput
 
         class SuccessTool(BaseTool):
             name = "success_tool"

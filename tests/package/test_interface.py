@@ -5,7 +5,7 @@ Tests for Package Mode interface.
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from chat_shell_101.package.interface import (
+from chat_shell.package.interface import (
     ChatInput,
     ChatOutput,
     ChatInterface,
@@ -96,7 +96,7 @@ class TestDirectChatInterface:
     @pytest.fixture
     def mock_agent(self):
         """Create mock ChatAgent."""
-        with patch("chat_shell_101.agent.agent.ChatAgent") as mock:
+        with patch("chat_shell.agent.agent.ChatAgent") as mock:
             agent_instance = AsyncMock()
             agent_instance.initialize = AsyncMock()
             mock.return_value = agent_instance
@@ -115,7 +115,7 @@ class TestDirectChatInterface:
 
     async def test_initialize_with_config_values(self, mock_agent):
         """Test that agent is initialized with correct config."""
-        from chat_shell_101.agent.config import AgentConfig
+        from chat_shell.agent.config import AgentConfig
 
         mock_class, _ = mock_agent
         config = InterfaceConfig(

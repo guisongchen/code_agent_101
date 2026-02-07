@@ -6,7 +6,7 @@ import json
 import pytest
 from datetime import datetime
 
-from chat_shell_101.streaming.events import (
+from chat_shell.streaming.events import (
     BaseStreamEvent,
     ChunkEvent,
     ToolStartEvent,

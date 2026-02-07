@@ -3,9 +3,9 @@ Tests for SkillManager - Epic 3: Tools System.
 """
 
 import pytest
-from chat_shell_101.skills.manager import SkillManager
-from chat_shell_101.skills.base import BaseSkill, SkillConfig, SkillContext
-from chat_shell_101.skills.exceptions import SkillNotFoundError, SkillAlreadyLoadedError
+from chat_shell.skills.manager import SkillManager
+from chat_shell.skills.base import BaseSkill, SkillConfig, SkillContext
+from chat_shell.skills.exceptions import SkillNotFoundError, SkillAlreadyLoadedError
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_3]

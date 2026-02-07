@@ -3,7 +3,7 @@ Tests for tool exceptions - Epic 3: Tools System.
 """
 
 import pytest
-from chat_shell_101.tools.exceptions import (
+from chat_shell.tools.exceptions import (
     ToolError,
     ToolNotFoundError,
     ToolValidationError,

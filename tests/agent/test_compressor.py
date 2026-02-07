@@ -5,7 +5,7 @@ Tests for MessageCompressor and compression strategies - Epic 1: Core Agent Syst
 import pytest
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
-from chat_shell_101.agent.compressor import (
+from chat_shell.agent.compressor import (
     CompressionStrategy,
     CompressionResult,
     MessageCompressor,

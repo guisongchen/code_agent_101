@@ -3,8 +3,8 @@ Tests for PromptModifierTool protocol - Epic 1: Core Agent System.
 """
 
 import pytest
-from chat_shell_101.tools.base import PromptModifierTool
-from chat_shell_101.agent.agent import AgentState
+from chat_shell.tools.base import PromptModifierTool
+from chat_shell.agent.agent import AgentState
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_1]

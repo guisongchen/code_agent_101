@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from chat_shell_101.storage.sqlite_storage import SQLiteHistoryStorage, SQLiteStorage
-from chat_shell_101.storage.interfaces import Message
+from chat_shell.storage.sqlite_storage import SQLiteHistoryStorage, SQLiteStorage
+from chat_shell.storage.interfaces import Message
 
 
 @pytest.fixture

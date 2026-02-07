@@ -3,7 +3,7 @@ Tests for skills exceptions - Epic 3: Tools System.
 """
 
 import pytest
-from chat_shell_101.skills.exceptions import (
+from chat_shell.skills.exceptions import (
     SkillError,
     SkillNotFoundError,
     SkillLoadError,

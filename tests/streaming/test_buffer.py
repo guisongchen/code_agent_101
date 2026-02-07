@@ -6,8 +6,8 @@ import pytest
 import asyncio
 from datetime import datetime, timedelta
 
-from chat_shell_101.streaming.buffer import EventBuffer, BufferedEvent, PerStreamBuffer
-from chat_shell_101.streaming.events import ChunkEvent, EventType
+from chat_shell.streaming.buffer import EventBuffer, BufferedEvent, PerStreamBuffer
+from chat_shell.streaming.events import ChunkEvent, EventType
 
 
 class TestEventBuffer:

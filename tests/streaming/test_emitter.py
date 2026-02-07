@@ -6,14 +6,14 @@ import pytest
 import asyncio
 from datetime import datetime, timedelta
 
-from chat_shell_101.streaming.emitter import (
+from chat_shell.streaming.emitter import (
     SSEEmitter,
     ClientConnection,
     SSEMessage,
     ConnectionState,
 )
-from chat_shell_101.streaming.events import ChunkEvent, EventType
-from chat_shell_101.streaming.exceptions import ClientDisconnectedError
+from chat_shell.streaming.events import ChunkEvent, EventType
+from chat_shell.streaming.exceptions import ClientDisconnectedError
 
 
 class TestSSEMessage:

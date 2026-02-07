@@ -3,7 +3,7 @@ Tests for skills base classes - Epic 3: Tools System.
 """
 
 import pytest
-from chat_shell_101.skills.base import BaseSkill, SkillConfig, SkillContext
+from chat_shell.skills.base import BaseSkill, SkillConfig, SkillContext
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_3]

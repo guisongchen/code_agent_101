@@ -3,7 +3,7 @@ Tests for WebSearchTool - Epic 3: Tools System.
 """
 
 import pytest
-from chat_shell_101.tools.web_search import WebSearchTool, WebSearchInput
+from chat_shell.tools.web_search import WebSearchTool, WebSearchInput
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_3]

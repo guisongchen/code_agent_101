@@ -4,7 +4,7 @@ Tests for API schema models.
 
 import pytest
 
-from chat_shell_101.api.schemas import (
+from chat_shell.api.schemas import (
     ChatRequest,
     ChatResponse,
     ChatEvent,

@@ -3,9 +3,9 @@ Tests for LangGraphAgentBuilder - Epic 1: Core Agent System.
 """
 
 import pytest
-from chat_shell_101.agent.builder import LangGraphAgentBuilder, SQLITE_AVAILABLE
-from chat_shell_101.agent.config import AgentConfig
-from chat_shell_101.agent.agent import ChatAgent
+from chat_shell.agent.builder import LangGraphAgentBuilder, SQLITE_AVAILABLE
+from chat_shell.agent.config import AgentConfig
+from chat_shell.agent.agent import ChatAgent
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.epic_1]
