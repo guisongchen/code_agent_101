@@ -3,7 +3,7 @@ Base tool interface.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Protocol, TYPE_CHECKING
+from typing import Any, Dict, Protocol, runtime_checkable, TYPE_CHECKING
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
@@ -42,6 +42,7 @@ class BaseTool(ABC):
         }
 
 
+@runtime_checkable
 class PromptModifierTool(Protocol):
     """Protocol for tools that can dynamically modify the system prompt.
 

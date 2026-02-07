@@ -203,7 +203,12 @@ class LangGraphAgentBuilder:
             if config.checkpoint_type == "memory":
                 self._checkpointer = MemorySaver()
             elif config.checkpoint_type == "sqlite" and config.checkpoint_path:
-                self._checkpointer = SqliteSaver(config.checkpoint_path)
+                if not SQLITE_AVAILABLE:
+                    raise ImportError(
+                        "SQLite checkpoint support is not available. "
+                        "Install with: pip install langgraph[sqlite]"
+                    )
+                self._checkpointer = AsyncSqliteSaver(config.checkpoint_path)
         return self
 
     def build(self) -> ChatAgent:
