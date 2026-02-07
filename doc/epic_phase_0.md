@@ -131,15 +131,22 @@ This phase focuses on building the foundational components required for a workin
 **Goal**: Implement real-time streaming responses via SSE
 
 ### User Stories
-- [ ] Implement SSEEmitter for Server-Sent Events
-- [ ] Create StreamingCore for stream coordination
-- [ ] Implement StreamingState for session state management
-- [ ] Support token-level streaming (chunk events)
-- [ ] Support tool execution event streaming (ToolStart/ToolResult)
-- [ ] Support thinking process event streaming
-- [ ] Implement session recovery with offset continuation
-- [ ] Add support for canceling running sessions
-- [ ] Handle client disconnection gracefully
+- [x] Implement SSEEmitter for Server-Sent Events
+- [x] Create StreamingCore for stream coordination
+- [x] Implement StreamingState for session state management
+- [x] Support token-level streaming (chunk events)
+- [x] Support tool execution event streaming (ToolStart/ToolResult)
+- [x] Support thinking process event streaming
+- [x] Implement session recovery with offset continuation
+- [x] Add support for canceling running sessions
+- [x] Handle client disconnection gracefully
+
+### Tests
+- [x] Unit tests for StreamConfig (2 tests)
+- [x] Unit tests for StreamingCore (16 tests)
+- [x] Integration tests for streaming lifecycle (3 tests)
+- [x] Unit tests for global streaming core (3 tests)
+- [x] **Total: 23 tests passing**
 
 ---
 
