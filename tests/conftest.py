@@ -35,6 +35,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "epic_14: Epic 14 - WebSocket Chat Endpoint")
     config.addinivalue_line("markers", "epic_15: Epic 15 - Message History Management")
     config.addinivalue_line("markers", "epic_16: Epic 16 - Chat Session State Management")
+    config.addinivalue_line("markers", "epic_17: Epic 17 - Real-time Event Broadcasting")
 
     # Component markers
     config.addinivalue_line("markers", "backend: Backend CRD management tests")

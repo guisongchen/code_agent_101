@@ -3,6 +3,7 @@
 Implements Task Management API with lifecycle operations.
 
 Epic 12: Task Management API
+Epic 17: Real-time Event Broadcasting
 """
 
 from typing import List, Optional
@@ -15,6 +16,7 @@ from backend.database.engine import get_db_session
 from backend.models.tasks import TaskStatus
 from backend.schemas import TaskCreateRequest, TaskResponse, TaskStatusUpdate
 from backend.services import TaskService
+from backend.websocket.task_events import get_task_event_broadcaster
 
 router = APIRouter()
 
@@ -52,6 +54,21 @@ async def create_task(
 
     try:
         result = await service.create(request, created_by=request.created_by)
+
+        # Broadcast task created event
+        broadcaster = get_task_event_broadcaster()
+        await broadcaster.broadcast_task_created(
+            task_id=result.id,
+            task_data={
+                "name": result.name,
+                "namespace": result.namespace,
+                "status": result.status.value,
+                "team_id": str(result.team_id) if result.team_id else None,
+                "input": result.input,
+            },
+            user_id=result.created_by,
+        )
+
         return result
     except ValueError as e:
         if "already exists" in str(e):
@@ -153,15 +170,59 @@ async def update_task_status(
     """
     service = TaskService(session)
 
+    broadcaster = get_task_event_broadcaster()
+
     try:
         if update.status == TaskStatus.RUNNING:
-            return await service.start(task_id)
+            result = await service.start(task_id)
+            await broadcaster.broadcast_task_started(
+                task_id=result.id,
+                task_data={
+                    "name": result.name,
+                    "namespace": result.namespace,
+                    "status": result.status.value,
+                },
+                user_id=result.created_by,
+            )
+            return result
         elif update.status == TaskStatus.COMPLETED:
-            return await service.complete(task_id, output=update.output)
+            result = await service.complete(task_id, output=update.output)
+            await broadcaster.broadcast_task_completed(
+                task_id=result.id,
+                task_data={
+                    "name": result.name,
+                    "namespace": result.namespace,
+                    "status": result.status.value,
+                },
+                output=result.output,
+                user_id=result.created_by,
+            )
+            return result
         elif update.status == TaskStatus.FAILED:
-            return await service.fail(task_id, error=update.error or "Unknown error")
+            result = await service.fail(task_id, error=update.error or "Unknown error")
+            await broadcaster.broadcast_task_failed(
+                task_id=result.id,
+                task_data={
+                    "name": result.name,
+                    "namespace": result.namespace,
+                    "status": result.status.value,
+                },
+                error=update.error or "Unknown error",
+                user_id=result.created_by,
+            )
+            return result
         elif update.status == TaskStatus.CANCELLED:
-            return await service.cancel(task_id)
+            result = await service.cancel(task_id)
+            await broadcaster.broadcast_task_cancelled(
+                task_id=result.id,
+                task_data={
+                    "name": result.name,
+                    "namespace": result.namespace,
+                    "status": result.status.value,
+                },
+                user_id=result.created_by,
+            )
+            return result
         elif update.status == TaskStatus.PENDING:
             # Reset to pending - not typically allowed but service handles it
             raise HTTPException(

@@ -117,20 +117,20 @@ This phase implements the chat execution engine that integrates the completed ch
 **Goal**: Implement room-based message routing for multi-user scenarios
 
 ### User Stories
-- [ ] Create user rooms (`user:{user_id}`) for personal notifications
-- [ ] Create task rooms (`task:{task_id}`) for chat streaming
-- [ ] Implement `task:created` event broadcasting
-- [ ] Implement `task:status` update events
-- [ ] Handle multiple clients in same task room
-- [ ] Implement event filtering by room membership
-- [ ] Add Redis pub/sub for cross-instance broadcasting
-- [ ] Handle client disconnections gracefully
+- [x] Create user rooms (`user:{user_id}`) for personal notifications
+- [x] Create task rooms (`task:{task_id}`) for chat streaming
+- [x] Implement `task:created` event broadcasting
+- [x] Implement `task:status` update events
+- [x] Handle multiple clients in same task room
+- [x] Implement event filtering by room membership
+- [ ] Add Redis pub/sub for cross-instance broadcasting (future enhancement)
+- [x] Handle client disconnections gracefully
 
 ### Tests
-- [ ] Room broadcasting tests (8 tests)
-- [ ] Multi-client tests (6 tests)
-- [ ] Redis pub/sub tests (4 tests)
-- [ ] **Total: 18 tests passing**
+- [x] Room broadcasting tests (8 tests)
+- [x] Multi-client tests (10 tests)
+- [x] Event bus tests (8 tests)
+- [x] **Total: 26 tests passing**
 
 ---
 

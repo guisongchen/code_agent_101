@@ -5,6 +5,7 @@ Implements WebSocket endpoint for task-based chat with streaming support.
 Epic 14: WebSocket Chat Endpoint
 Epic 15: Message History Management
 Epic 16: Chat Session State Management
+Epic 17: Real-time Event Broadcasting
 """
 
 import asyncio
@@ -20,6 +21,7 @@ from backend.schemas import ChatMessage, CurrentUser, SessionCreateRequest
 from backend.services import ChatService, MessageService, SessionService, TaskService
 from backend.websocket.manager import get_room_manager
 from backend.websocket.session_manager import get_session_manager
+from backend.websocket.user_room_manager import get_user_room_manager
 from backend.websocket.auth import authenticate_websocket
 
 router = APIRouter()
@@ -101,6 +103,7 @@ async def task_chat_websocket(
         - pong - Keep-alive response
     """
     room_manager = get_room_manager()
+    user_room_manager = get_user_room_manager()
     session_manager = get_session_manager()
     chat_service = ChatService(session)
     task_service = TaskService(session)
@@ -175,6 +178,13 @@ async def task_chat_websocket(
         task_id,
         websocket,
         client_info={"user_id": user.id, "username": user.username, "session_id": session_id},
+    )
+
+    # Join user room for personal notifications
+    await user_room_manager.join_user(
+        user.id,
+        websocket,
+        client_info={"task_id": str(task_id), "session_id": session_id},
     )
 
     # Track active generation for cancellation
@@ -295,6 +305,7 @@ async def task_chat_websocket(
             await session.commit()
 
         await room_manager.leave_task(task_id, websocket)
+        await user_room_manager.leave_user(user.id, websocket)
         await websocket.close()
 
 
