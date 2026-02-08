@@ -30,20 +30,20 @@ This phase implements the chat execution engine that integrates the completed ch
 **Goal**: Integrate chat_shell module as a package for AI conversation execution
 
 ### User Stories
-- [ ] Import chat_shell as a package dependency
-- [ ] Create `ChatService` to orchestrate chat execution
-- [ ] Implement `execute_chat` method that calls chat_shell.process_messages
-- [ ] Map Bot configuration to chat_shell AgentConfig
-- [ ] Extract model configuration from Model CRD spec
-- [ ] Extract system prompt from Ghost CRD spec
-- [ ] Handle chat_shell initialization and cleanup
-- [ ] Implement error handling for chat execution failures
+- [x] Import chat_shell as a package dependency
+- [x] Create `ChatService` to orchestrate chat execution
+- [x] Implement `execute_chat` method that calls chat_shell.stream
+- [x] Map Bot configuration to chat_shell AgentConfig
+- [x] Extract model configuration from Model CRD spec
+- [x] Extract system prompt from Ghost CRD spec
+- [x] Handle chat_shell initialization and cleanup
+- [x] Implement error handling for chat execution failures
 
 ### Tests
-- [ ] Chat service unit tests (10 tests)
-- [ ] chat_shell integration tests (8 tests)
-- [ ] Error handling tests (6 tests)
-- [ ] **Total: 24 tests passing**
+- [x] Chat service unit tests (10 tests)
+- [ ] chat_shell integration tests (8 tests - pending WebSocket implementation)
+- [x] Error handling tests (covered in service tests)
+- [x] **Total: 10 tests passing**
 
 ---
 
