@@ -50,20 +50,20 @@ This phase implements the foundational Backend CRD (Custom Resource Definition) 
 **Goal**: Implement generic CRUD service base class with resource-specific subclasses
 
 ### User Stories
-- [ ] Create generic `CRDService` base class with type parameters
-- [ ] Implement `get`, `list`, `create`, `delete` methods
-- [ ] Create `GhostService` with Ghost-specific logic
-- [ ] Create `ModelService` for Model resource management
-- [ ] Create `ShellService` for Shell resource management
-- [ ] Create `BotService` with reference validation (Ghost, Shell, Model)
-- [ ] Create `TeamService` with member validation
-- [ ] Implement soft delete logic in delete operations
+- [x] Create generic `CRDService` base class with type parameters
+- [x] Implement `get`, `list`, `create`, `delete` methods
+- [x] Create `GhostService` with Ghost-specific logic
+- [x] Create `ModelService` for Model resource management
+- [x] Create `ShellService` for Shell resource management
+- [x] Create `BotService` with reference validation (Ghost, Shell, Model)
+- [x] Create `TeamService` with member validation
+- [x] Implement soft delete logic in delete operations
 
 ### Tests
-- [ ] Service layer unit tests (20 tests)
-- [ ] Reference validation tests (8 tests)
-- [ ] Soft delete tests (4 tests)
-- [ ] **Total: 32 tests passing**
+- [x] Service layer unit tests (48 tests)
+- [x] Reference validation tests (included in service tests)
+- [x] Soft delete tests (included in service tests)
+- [x] **Total: 48 tests passing**
 
 ---
 
