@@ -1,4 +1,4 @@
-# ADR 001: Epic 1 - Core Agent System Architecture
+# ADR 001: Core Agent System Architecture
 
 ## Status
 

@@ -1,4 +1,4 @@
-# ADR 006: Epic 6 - Storage Layer
+# ADR 006: Storage Layer
 
 ## Status
 

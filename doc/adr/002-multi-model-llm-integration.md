@@ -1,4 +1,4 @@
-# ADR 002: Epic 2 - Multi-Model LLM Integration
+# ADR 002: Multi-Model LLM Integration
 
 ## Status
 

@@ -1,4 +1,4 @@
-# ADR 005: Epic 5 - Streaming Response System
+# ADR 005: Streaming Response System
 
 ## Status
 

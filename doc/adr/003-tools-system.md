@@ -1,4 +1,4 @@
-# ADR 003: Epic 3 - Tools System Architecture
+# ADR 003: Tools System Architecture
 
 ## Status
 

@@ -1,4 +1,4 @@
-# ADR 004: Epic 4 - Three Deployment Modes
+# ADR 004: Three Deployment Modes
 
 ## Status
 
