@@ -18,9 +18,18 @@ tests/
 ├── README.md                      # This file
 ├── unit/                          # Unit tests - fast, isolated
 │   ├── crd_backend/               # Backend CRD tests (renamed to avoid import conflict)
-│   │   └── models/
-│   │       ├── test_kinds.py      # Kind model tests (6 tests)
-│   │       └── test_tasks.py      # Task model tests (4 tests)
+│   │   ├── models/
+│   │   │   ├── test_kinds.py      # Kind model tests (6 tests)
+│   │   │   └── test_tasks.py      # Task model tests (4 tests)
+│   │   └── schemas/               # Pydantic schema tests (Epic 8)
+│   │       ├── test_base_schemas.py # Base schemas (10 tests)
+│   │       ├── test_ghost.py      # Ghost schemas (5 tests)
+│   │       ├── test_model.py      # Model schemas (5 tests)
+│   │       ├── test_shell.py      # Shell schemas (5 tests)
+│   │       ├── test_bot.py        # Bot schemas with ref validation (6 tests)
+│   │       ├── test_team.py       # Team schemas (5 tests)
+│   │       ├── test_skill.py      # Skill schemas (5 tests)
+│   │       └── test_task.py       # Task schemas (5 tests)
 │   └── chat_shell/                # Chat shell tests
 │       ├── agent/                 # Agent system tests (Epic 1)
 │       ├── api/                   # API tests (Epic 4)
@@ -41,11 +50,21 @@ tests/
 
 | Category | Count |
 |----------|-------|
-| **Total** | 365 tests |
-| **Backend** | 18 tests |
+| **Total** | 441 tests |
+| **Backend** | 94 tests |
 | **Chat Shell** | 324+ tests |
-| **Unit** | 334 tests |
+| **Unit** | 410 tests |
 | **Integration** | 8 tests |
+
+### Backend Test Breakdown
+
+| Component | Count |
+|-----------|-------|
+| **Models** | 10 tests (Epic 7) |
+| **Schemas** | 76 tests (Epic 8) |
+| **Migrations** | 5 tests |
+| **Database Connection** | 3 tests |
+| **Total Backend** | 94 tests |
 
 ## pytest Markers
 
