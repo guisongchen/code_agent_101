@@ -1,4 +1,4 @@
-# ADR 009: Epic 9 - CRUD Service Layer
+# ADR 009: CRUD Service Layer
 
 ## Status
 
