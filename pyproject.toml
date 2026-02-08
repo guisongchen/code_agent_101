@@ -24,6 +24,11 @@ dependencies = [
     "sse-starlette>=1.6.5",
     "tiktoken>=0.5.0",
     "uvicorn[standard]>=0.24.0",
+    # Epic 7: Database Schema & Models
+    "sqlalchemy[asyncio]>=2.0.0",
+    "alembic>=1.12.0",
+    "asyncpg>=0.29.0",
+    "psycopg2-binary>=2.9.9",
 ]
 
 [project.optional-dependencies]
@@ -77,15 +82,26 @@ addopts = [
     "--asyncio-mode=auto",
 ]
 markers = [
-    "integration: integration tests",
-    "slow: slow tests",
-    "unit: unit tests",
-    "async: async tests",
+    # Test type markers
+    "unit: Unit tests - fast, isolated component tests",
+    "integration: Integration tests - component interaction tests",
+    "e2e: End-to-end tests - full system tests",
+    "slow: Slow tests that should be run separately",
+    "async: Async tests requiring asyncio support",
+    # Component markers
+    "backend: Backend CRD management tests",
+    "chat_shell: Chat shell tests",
+    # Epic markers
     "epic_1: Epic 1 - Core Agent System",
     "epic_2: Epic 2 - Multi-Model LLM Integration",
     "epic_3: Epic 3 - Tools System",
     "epic_4: Epic 4 - Deployment Modes",
     "epic_5: Epic 5 - Streaming Response System",
     "epic_6: Epic 6 - Storage Layer",
+    "epic_7: Epic 7 - Database Schema & Models",
+    "epic_8: Epic 8 - Pydantic Schemas & Validation",
+    "epic_9: Epic 9 - CRUD Service Layer",
+    "epic_10: Epic 10 - RESTful API Endpoints",
+    "epic_11: Epic 11 - Authentication & Authorization",
     "epic_21: Epic 21 - Database Schema Extension",
 ]

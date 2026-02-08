@@ -9,19 +9,19 @@ This phase implements the foundational Backend CRD (Custom Resource Definition) 
 **Goal**: Design and implement the database schema for CRD storage with proper SQLAlchemy models
 
 ### User Stories
-- [ ] Create `kinds` table schema for Ghost, Model, Shell, Bot, Team, Skill resources
-- [ ] Create `tasks` table schema for Task resources (separate lifecycle)
-- [ ] Implement SQLAlchemy 2.0 models with JSON support for flexible spec storage
-- [ ] Add soft delete support via `deleted_at` timestamp
-- [ ] Create unique constraints for (kind, name, namespace) combination
-- [ ] Implement database migration scripts with Alembic
-- [ ] Add database connection pooling and session management
+- [x] Create `kinds` table schema for Ghost, Model, Shell, Bot, Team, Skill resources
+- [x] Create `tasks` table schema for Task resources (separate lifecycle)
+- [x] Implement SQLAlchemy 2.0 models with JSON support for flexible spec storage
+- [x] Add soft delete support via `deleted_at` timestamp
+- [x] Create unique constraints for (kind, name, namespace) combination
+- [x] Implement database migration scripts with Alembic
+- [x] Add database connection pooling and session management
 
 ### Tests
-- [ ] Unit tests for SQLAlchemy models (10 tests)
-- [ ] Migration tests (5 tests)
-- [ ] Database connection tests (3 tests)
-- [ ] **Total: 18 tests passing**
+- [x] Unit tests for SQLAlchemy models (10 tests)
+- [x] Migration tests (5 tests)
+- [x] Database connection tests (3 tests)
+- [x] **Total: 18 tests passing**
 
 ---
 
