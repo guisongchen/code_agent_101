@@ -1,434 +1,625 @@
-# Chat Shell 软件架构文档
+---
+sidebar_position: 1
+---
 
-## 1. 系统概述
+# 🏗️ System Architecture
 
-Chat Shell 是一个基于 LangGraph 的 AI 聊天代理服务，提供完整的聊天引擎功能。它是 Wegent（微博智能助手）项目的核心组件，负责处理用户与 AI 的对话交互、工具调用、知识库检索等功能。
+This document provides a detailed overview of Wegent's system architecture, component design, and technology stack.
 
-### 核心特性
+---
 
-- **多模型支持**：集成 OpenAI、Anthropic Claude、Google Gemini 等多个 LLM 提供商
-- **工具系统**：内置工具（Web 搜索、知识库、数据表格、文件读取等）+ MCP 协议动态工具加载
-- **技能系统**：支持动态加载和卸载技能（Skills），扩展 Agent 能力
-- **多种部署模式**：支持 HTTP 服务、Python 包导入、命令行工具三种模式
-- **流式响应**：基于 SSE（Server-Sent Events）的实时流式输出
-- **会话管理**：支持会话恢复、取消、历史记录管理
-- **智能压缩**：自动消息压缩机制，应对上下文长度限制
-- **可观测性**：集成 OpenTelemetry，提供完整的分布式追踪
+## 📋 Table of Contents
 
-## 2. 系统架构
+- [Architecture Overview](#architecture-overview)
+- [Core Components](#core-components)
+- [Data Flow and Communication Patterns](#data-flow-and-communication-patterns)
+- [Technology Stack](#technology-stack)
+- [Design Principles](#design-principles)
+- [Scalability and Deployment](#scalability-and-deployment)
 
-### 2.1 整体架构
+---
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Chat Shell Service                       │
-│                                                                   │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────┐    │
-│  │   CLI 接口  │  │  HTTP API    │  │  Package Interface  │    │
-│  │  (Click)    │  │  (FastAPI)   │  │  (Direct Import)    │    │
-│  └──────┬──────┘  └──────┬───────┘  └──────────┬──────────┘    │
-│         │                │                      │                │
-│         └────────────────┼──────────────────────┘                │
-│                          │                                        │
-│                  ┌───────▼────────┐                              │
-│                  │  Chat Service  │                              │
-│                  │  (ChatInterface)│                             │
-│                  └───────┬────────┘                              │
-│                          │                                        │
-│         ┌────────────────┼────────────────┐                     │
-│         │                │                │                      │
-│    ┌────▼─────┐   ┌─────▼──────┐  ┌─────▼────────┐            │
-│    │ ChatAgent│   │  Streaming │  │  Session     │            │
-│    │          │   │   Core     │  │  Manager     │            │
-│    └────┬─────┘   └─────┬──────┘  └──────────────┘            │
-│         │               │                                        │
-│    ┌────▼─────────────┐ │                                       │
-│    │  LangGraph Agent │ │                                       │
-│    │  (ReAct Workflow)│ │                                       │
-│    └────┬─────────────┘ │                                       │
-│         │               │                                        │
-│    ┌────▼────┐    ┌─────▼──────┐                               │
-│    │  Tools  │    │  Emitter   │                               │
-│    │ Registry│    │  (SSE)     │                               │
-│    └─────────┘    └────────────┘                               │
-│                                                                   │
-└─────────────────────────────────────────────────────────────────┘
-         │                    │                    │
-         │                    │                    │
-    ┌────▼────┐          ┌───▼────┐         ┌────▼─────┐
-    │  LLM    │          │ Storage│         │ External │
-    │Providers│          │Backend │         │  Tools   │
-    │(API)    │          │        │         │  (MCP)   │
-    └─────────┘          └────────┘         └──────────┘
-```
+## 🌐 Architecture Overview
 
-### 2.2 三种部署模式
+Wegent adopts a modern layered architecture design based on Kubernetes-style declarative API and CRD (Custom Resource Definition) design patterns, providing a standardized framework for creating and managing AI agent ecosystems.
 
-#### HTTP 模式（默认）
-- **场景**：独立 HTTP 服务，与后端（Backend）解耦
-- **通信**：Backend 通过 HTTP API 调用 Chat Shell
-- **存储**：Remote Storage（调用 Backend 的 `/internal/chat/*` APIs）
-- **启动**：`uvicorn chat_shell.main:app --port 8001`
+### System Architecture Diagram
 
-#### Package 模式
-- **场景**：Backend 直接导入 Chat Shell 作为 Python 包
-- **通信**：Backend 直接调用 Python 函数，无 HTTP 开销
-- **存储**：Backend 直接传递消息，无需存储层
-- **优势**：性能更高，调试更方便
+```mermaid
+graph TB
+    subgraph "🖥️ Management Platform Layer"
+        Frontend["🌐 Next.js Frontend<br/>React 19 + TypeScript"]
+        Backend["⚙️ FastAPI Backend<br/>Python + SQLAlchemy"]
+        API["🚀 Declarative API<br/>Kubernetes-style"]
+    end
 
-#### CLI 模式
-- **场景**：开发者本地测试和调试
-- **通信**：命令行交互界面
-- **存储**：SQLite 本地存储（`~/.chat_shell/history.db`）
-- **启动**：`chat-shell chat` 或 `chat-shell query "问题"`
+    subgraph "📊 Data Layer"
+        MySQL[("💾 MySQL Database<br/>v9.4")]
+        Redis[("🔴 Redis Cache<br/>v7")]
+    end
 
-## 3. 核心模块
+    subgraph "🔍 Execution Layer"
+        ExecutorManager["💯 Executor Manager<br/>Task Scheduling & Orchestration"]
+        Executor1["🚀 Executor 1<br/>Isolated Sandbox"]
+        Executor2["🚀 Executor 2<br/>Isolated Sandbox"]
+        ExecutorN["🚀 Executor N<br/>Isolated Sandbox"]
+    end
 
-### 3.1 Agent 模块 (`agent.py`, `agents/`)
+    subgraph "🤖 Agent Layer"
+        Claude["🧠 Claude Code<br/>Coding Agent"]
+        Agno["💻 Agno<br/>Chat Agent"]
+        Dify["✨ Dify<br/>External API Agent"]
+    end
 
-**职责**：AI Agent 的核心实现，负责创建和执行 LangGraph Agent
 
-**核心组件**：
-- `ChatAgent`：主 Agent 类，提供同步和流式执行接口
-- `AgentConfig`：Agent 配置数据类
-- `LangGraphAgentBuilder`：使用 LangGraph 的 `create_react_agent` 构建 ReAct 工作流
-- `MessageCompressor`：自动消息压缩，处理上下文长度限制
+    %% System Interactions
+    Frontend --> API
+    API --> Backend
+    Backend --> MySQL
+    Backend --> Redis
+    Backend --> ExecutorManager
+    ExecutorManager --> Executor1
+    ExecutorManager --> Executor2
+    ExecutorManager --> ExecutorN
 
-**关键特性**：
-- ReAct（Reasoning + Acting）工作流
-- 工具循环迭代限制（默认 10 次）
-- 动态提示词注入（PromptModifierTool）
-- State Checkpointing 支持会话恢复
+    %% AI Program Integration
+    Executor1 --> Claude
+    Executor2 --> Agno
+    ExecutorN --> Dify
 
-### 3.2 Tools 模块 (`tools/`)
+    %% Styling
+    classDef platform fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef data fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef execution fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef agent fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
 
-**职责**：工具注册、管理和执行
-
-**工具类型**：
-
-1. **内置工具** (`builtin/`)
-   - `WebSearchTool`：网络搜索
-   - `KnowledgeBaseTool`：知识库检索（RAG）
-   - `DataTableTool`：数据表格查询
-   - `FileReaderTool`：文件读取和解析
-   - `LoadSkillTool`：动态加载技能
-   - `CreateSubscriptionTool`：创建订阅任务
-   - `SilentExitTool`：静默退出（用于订阅任务）
-   - `EvaluationTool`：评估工具
-
-2. **MCP 工具** (`mcp/`)
-   - 基于 Model Context Protocol 的动态工具加载
-   - 支持远程工具服务器连接
-
-3. **技能工具** (`skill_factory.py`)
-   - 从后端动态加载的自定义工具
-   - 支持预加载（preload）机制
-
-**核心类**：
-- `ToolRegistry`：工具注册表，管理所有可用工具
-- `PromptModifierTool`：协议接口，支持工具动态修改系统提示词
-- `KnowledgeInjectionStrategy`：知识注入策略（相关性排序、时间排序等）
-
-### 3.3 Services 模块 (`services/`)
-
-**职责**：业务逻辑层，协调 Agent、Storage、Streaming
-
-**核心组件**：
-
-1. **ChatService** (`chat_service.py`)
-   - 实现 `ChatInterface` 接口
-   - 处理聊天请求、恢复、取消操作
-   - 协调 Agent 执行和事件流输出
-
-2. **ChatContext** (`context.py`)
-   - 上下文管理器，负责 Agent 创建和配置
-   - 工具初始化和依赖注入
-   - 模型配置和选择
-
-3. **Storage** (`storage/`)
-   - `MemoryStorage`：内存存储（测试用）
-   - `SQLiteStorage`：本地 SQLite 存储（CLI 模式）
-   - `RemoteStorage`：远程存储（HTTP 模式，调用 Backend API）
-   - `SessionManager`：会话管理器，支持流式会话的恢复和取消
-
-4. **Streaming** (`streaming/`)
-   - `StreamingCore`：流式响应核心逻辑
-   - `SSEEmitter`：SSE 事件发射器
-   - `StreamingState`：流式会话状态管理
-
-### 3.4 API 模块 (`api/`)
-
-**职责**：HTTP API 接口层
-
-**结构**：
-- `api/v1/response.py`：`/v1/response` 端点，处理聊天请求
-- `api/health.py`：健康检查端点
-- `api/schemas.py`：API 请求/响应模型定义
-
-**主要端点**：
-- `POST /v1/response`：创建聊天会话，返回 SSE 流
-- `GET /v1/response/{subtask_id}`：恢复聊天会话
-- `DELETE /v1/response/{subtask_id}`：取消聊天会话
-
-### 3.5 CLI 模块 (`cli/`)
-
-**职责**：命令行工具接口
-
-**命令**：
-- `chat-shell serve`：启动 HTTP 服务器
-- `chat-shell chat`：交互式聊天会话
-- `chat-shell query "问题"`：单次查询
-- `chat-shell history`：查看历史记录
-- `chat-shell config`：配置管理
-
-### 3.6 核心基础模块 (`core/`)
-
-- `config.py`：配置管理（基于 Pydantic Settings）
-- `database.py`：数据库连接管理
-- `logging.py`：结构化日志配置（Structlog）
-- `shutdown.py`：优雅关闭处理
-
-### 3.7 辅助模块
-
-- **Messages** (`messages/`)：消息格式转换，适配不同 LLM 提供商
-- **Models** (`models/`)：LLM 模型工厂，统一创建不同提供商的模型实例
-- **Compression** (`compression/`)：消息压缩策略和 Token 计数
-- **Prompts** (`prompts/`)：提示词模板管理
-- **History** (`history/`)：历史记录管理
-- **Schemas** (`schemas/`)：数据结构定义
-- **Tables** (`tables/`)：表格数据处理
-- **DB Models** (`db_models/`)：数据库模型定义（SQLAlchemy）
-
-## 4. 数据流
-
-### 4.1 聊天请求处理流程
-
-```
-1. 接收请求
-   ├─ HTTP API: POST /v1/response
-   ├─ Package: create_chat_agent().chat(request)
-   └─ CLI: chat-shell chat
-
-2. ChatService 处理
-   ├─ 创建 StreamingCore 和 SSEEmitter
-   ├─ 通过 ChatContext 创建 ChatAgent
-   └─ 初始化 StreamingState
-
-3. ChatAgent 执行
-   ├─ 加载历史消息（从 Storage）
-   ├─ 构建提示词（系统提示 + 动态注入）
-   ├─ 初始化工具（ToolRegistry）
-   └─ 创建 LangGraph Agent（ReAct 工作流）
-
-4. LangGraph 执行循环
-   ├─ Model 思考 → AIMessage
-   ├─ 决定工具调用 → ToolCall
-   ├─ 执行工具 → ToolResult
-   ├─ Model 综合结果 → AIMessage
-   └─ 循环直到输出最终答案或达到迭代限制
-
-5. 流式输出
-   ├─ Token 级别流式输出（Chunk）
-   ├─ 工具调用事件（ToolStart/ToolResult）
-   ├─ 思考过程事件（Thinking）
-   └─ 保存到 Storage（RemoteStorage → Backend）
-
-6. 返回响应
-   ├─ SSE 流式输出到客户端
-   └─ 会话状态持久化
+    class Frontend,Backend,API platform
+    class MySQL,Redis data
+    class ExecutorManager,Executor1,Executor2,ExecutorN execution
+    class Claude,Agno,Dify agent
 ```
 
-### 4.2 工具调用流程
+### Architecture Layers
 
+| Layer | Responsibilities | Core Technologies |
+|-------|-----------------|-------------------|
+| **Management Platform Layer** | User interaction, resource management, API services | Next.js 15, FastAPI, React 19 |
+| **Data Layer** | Data persistence, cache management | MySQL 9.4, Redis 7 |
+| **Execution Layer** | Task scheduling, container orchestration, resource isolation | Docker, Python |
+| **Agent Layer** | AI capabilities, code execution, chat processing, external API integration | Claude Code, Agno, Dify |
+
+---
+
+## 🔧 Core Components
+
+### 1. 🌐 Frontend
+
+**Responsibilities**:
+- Provide user interface for resource definition and management
+- Implement task creation, monitoring, and result display
+- Provide real-time interaction and status updates
+
+**Technology Stack**:
+- **Framework**: Next.js 15 (App Router)
+- **UI Library**: React 19, Ant Design 5
+- **Styling**: Tailwind CSS 3
+- **State Management**: React Hooks
+- **Internationalization**: i18next
+- **Icons**: Heroicons, Tabler Icons
+
+**Core Features**:
+- 🎨 Configuration-driven UI with YAML visualization
+- 🔄 Real-time task status updates
+- 🌍 Multi-language support (Chinese/English)
+- 📱 Responsive design
+
+**Key File Structure**:
 ```
-1. Agent 决定调用工具
-   ├─ Model 输出带有 tool_calls 的 AIMessage
-   └─ LangGraph 自动提取工具调用
-
-2. ToolRegistry 查找工具
-   ├─ 根据 tool_name 查找注册的工具
-   └─ 验证工具参数
-
-3. 执行工具
-   ├─ 调用工具的 _run() 或 _arun() 方法
-   ├─ 工具可能触发子操作（如 API 调用、数据库查询）
-   └─ 返回 ToolResult
-
-4. 工具结果处理
-   ├─ 包装为 ToolMessage
-   ├─ 返回给 LangGraph
-   └─ Model 继续推理
-
-5. 特殊工具处理
-   ├─ PromptModifierTool：动态修改提示词
-   ├─ SilentExitTool：抛出 SilentExitException，静默退出
-   └─ LoadSkillTool：动态加载新工具到 ToolRegistry
+frontend/
+├── app/              # Next.js App Router
+├── components/       # React components
+├── public/          # Static assets
+└── package.json     # Dependencies
 ```
 
-## 5. 技术栈
+---
 
-### 5.1 核心框架
+### 2. ⚙️ Backend
 
-- **Web 框架**：FastAPI + Uvicorn
-- **AI 框架**：LangChain + LangGraph（ReAct Agent）
-- **CLI 框架**：Click
-- **异步运行时**：asyncio + aiohttp + httpx
+**Responsibilities**:
+- Implement declarative API for resource CRUD operations
+- Manage user authentication and authorization
+- Coordinate execution layer for task scheduling
+- Provide WebSocket support for real-time chat communication (Socket.IO)
 
-### 5.2 LLM 集成
+**Technology Stack**:
+- **Framework**: FastAPI 0.68+
+- **ORM**: SQLAlchemy 2.0
+- **Database Driver**: PyMySQL
+- **Authentication**: JWT (PyJWT), OAuth (Authlib)
+- **Async Support**: asyncio, aiohttp
+- **Cache**: Redis client
+- **Real-time Communication**: Socket.IO (python-socketio) with Redis adapter
 
-- **OpenAI**：`langchain-openai`
-- **Anthropic Claude**：`langchain-anthropic`
-- **Google Gemini**：`langchain-google-genai`
-- **MCP 协议**：`langchain-mcp-adapters` + `mcp`
+**Core Features**:
+- 🚀 High-performance async API
+- 🔒 JWT-based authentication
+- 📝 Complete CRUD operation support
+- 🔄 Real-time status synchronization
+- 🛡️ Data encryption (AES)
+- 👥 Role-based access control (admin/user)
 
-### 5.3 数据与存储
+**API Design**:
+```
+/api/v1/
+├── /ghosts          # Ghost resource management
+├── /models          # Model resource management
+├── /shells          # Shell resource management
+├── /bots            # Bot resource management
+├── /teams           # Team resource management
+├── /workspaces      # Workspace resource management
+├── /tasks           # Task resource management
+└── /admin           # Admin operations (user management, public models)
+```
 
-- **数据库 ORM**：SQLAlchemy 2.0 + asyncmy (MySQL) + aiosqlite (SQLite)
-- **数据验证**：Pydantic 2.x
-- **向量数据库**：Elasticsearch, Qdrant（通过 llama-index）
-- **RAG**：llama-index-core, llama-index-embeddings-openai
+**Key Dependencies**:
+```python
+FastAPI >= 0.68.0      # Web framework
+SQLAlchemy >= 2.0.28   # ORM
+PyJWT >= 2.8.0         # JWT authentication
+Redis >= 4.5.0         # Cache
+httpx >= 0.19.0        # HTTP client
+```
 
-### 5.4 文档处理
+---
 
-- **PDF**：pypdf2
-- **Word**：python-docx
-- **Excel**：openpyxl
-- **Markdown**：markdown + beautifulsoup4
-- **编码检测**：chardet
-- **图片**：Pillow
+### 3. 💯 Executor Manager
 
-### 5.5 开发与监控
+**Responsibilities**:
+- Manage Executor lifecycle
+- Task queue and scheduling
+- Resource allocation and rate limiting
+- Callback handling
 
-- **配置管理**：python-dotenv + pydantic-settings
-- **日志**：structlog
-- **追踪**：OpenTelemetry（API + SDK + OTLP Exporter）
-- **重试**：tenacity
-- **测试**：pytest + pytest-asyncio + pytest-httpx + pytest-mock
-- **代码质量**：black, isort, flake8, mypy
+**Technology Stack**:
+- **Language**: Python
+- **Container Management**: Docker SDK
+- **Networking**: Docker bridge network
 
-### 5.6 其他
+**Core Features**:
+- 🎯 Maximum concurrent task control (default: 5)
+- 🔧 Dynamic port allocation (10001-10100)
+- 🐳 Docker container orchestration
+- 📊 Task status tracking
 
-- **JSON 处理**：orjson（高性能）
-- **SSE**：sse-starlette
-- **沙盒执行**：e2b + e2b-code-interpreter
-- **HTTP 代理**：httpx[socks]
-- **时间处理**：python-dateutil
-- **YAML**：pyyaml
+**Configuration Parameters**:
+```yaml
+MAX_CONCURRENT_TASKS: 5              # Maximum concurrent tasks
+EXECUTOR_PORT_RANGE_MIN: 10001      # Port range start
+EXECUTOR_PORT_RANGE_MAX: 10100      # Port range end
+NETWORK: wegent-network              # Docker network
+EXECUTOR_IMAGE: wegent-executor:latest # Executor image
+```
 
-## 6. 关键设计决策
+---
 
-### 6.1 接口抽象
+### 4. 🚀 Executor
 
-- **ChatInterface**：统一接口，支持 HTTP、Package、CLI 三种模式
-- **StorageProvider**：存储抽象，支持 Memory、SQLite、Remote 三种后端
-- **PromptModifierTool**：工具协议，允许工具动态修改提示词
+**Responsibilities**:
+- Provide isolated sandbox environment
+- Execute agent tasks
+- Manage workspace and code repositories
+- Report execution results
 
-### 6.2 流式响应
+**Technology Stack**:
+- **Container**: Docker
+- **Runtime**: Claude Code, Agno, Dify
+- **Version Control**: Git
 
-- **SSE 协议**：实时推送事件（Token、工具调用、思考过程）
-- **会话恢复**：支持客户端断线重连，从指定 offset 继续
-- **取消支持**：支持用户取消长时间运行的请求
+**Core Features**:
+- 🔒 Fully isolated execution environment
+- 💼 Independent workspace
+- 🔄 Automatic cleanup mechanism
+- 📝 Real-time log output
 
-### 6.3 工具扩展性
+**Lifecycle**:
+```mermaid
+graph LR
+    Created["Created"] --> Running["Running"]
+    Running --> Completed["Completed"]
+    Running --> Failed["Failed"]
+    Completed --> Cleanup["Cleanup"]
+    Failed --> Cleanup
+    Cleanup --> Deleted["Deleted"]
+```
 
-- **静态工具**：内置工具，编译时确定
-- **动态技能**：运行时从后端加载
-- **MCP 工具**：通过 MCP 协议连接外部工具服务器
-- **PromptModifierTool**：工具可以动态注入提示词（如知识库检索结果）
+---
 
-### 6.4 上下文管理
+### 5. 💾 Database (MySQL)
 
-- **自动压缩**：当上下文超过限制时，自动触发消息压缩
-- **历史截断**：支持限制历史消息数量（history_limit）
-- **知识注入**：检索到的知识通过 PromptModifierTool 注入到系统提示
+**Responsibilities**:
+- Persistent storage of all resource definitions
+- Manage user data and authentication information
+- Record task execution history
 
-### 6.5 可观测性
+**Version**: MySQL 9.4
 
-- **分布式追踪**：OpenTelemetry 集成，跟踪每次请求的完整链路
-- **结构化日志**：Structlog 提供可搜索的 JSON 格式日志
-- **健康检查**：`/health` 端点，支持 Kubernetes liveness/readiness probe
+**Core Table Structure**:
+```
+wegent_db/
+├── ghosts           # Ghost definitions
+├── models           # Model configurations
+├── shells           # Shell configurations
+├── bots             # Bot instances
+├── teams            # Team definitions
+├── workspaces       # Workspace configurations
+├── tasks            # Task records
+├── users            # User information (with role field)
+└── public_models    # System-wide public models
+```
 
-## 7. 配置说明
+**Data Model Features**:
+- Uses SQLAlchemy ORM
+- Supports transactions and relational queries
+- Automatic timestamp management
+- Soft delete support
 
-### 7.1 环境变量
+---
 
+### 6. 🔴 Cache (Redis)
+
+**Responsibilities**:
+- Task status caching
+- Session management
+- Temporary real-time data storage
+- Task expiration management
+
+**Version**: Redis 7
+
+**Use Cases**:
+- 🔄 Chat task context caching (2-hour expiration)
+- 💻 Code task status caching (2-hour expiration)
+- 🎯 Executor deletion delay control
+- 📊 Real-time status updates
+
+---
+
+## 🔄 Data Flow and Communication Patterns
+
+### Task Execution Flow
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 User
+    participant Frontend as 🌐 Frontend
+    participant Backend as ⚙️ Backend
+    participant MySQL as 💾 MySQL
+    participant Redis as 🔴 Redis
+    participant EM as 💯 Executor Manager
+    participant Executor as 🚀 Executor
+    participant Agent as 🤖 Agent
+
+    User->>Frontend: 1. Create Task
+    Frontend->>Backend: 2. POST /api/v1/tasks
+    Backend->>MySQL: 3. Save task definition
+    Backend->>Redis: 4. Cache task status
+    Backend->>EM: 5. Schedule task execution
+    EM->>Executor: 6. Create Executor container
+    Executor->>Agent: 7. Start agent
+    Agent->>Executor: 8. Execute task
+    Executor->>EM: 9. Report execution result
+    EM->>Backend: 10. Callback to update status
+    Backend->>MySQL: 11. Update task record
+    Backend->>Redis: 12. Update cache status
+    Backend->>Frontend: 13. WebSocket push
+    Frontend->>User: 14. Display result
+```
+
+### Communication Protocols
+
+| Communication Type | Protocol | Purpose |
+|-------------------|----------|---------|
+| **Frontend ↔ Backend** | HTTP/HTTPS, WebSocket (Socket.IO) | API calls, real-time chat streaming |
+| **Backend ↔ Database** | MySQL Protocol | Data persistence |
+| **Backend ↔ Redis** | Redis Protocol | Cache operations, Socket.IO adapter |
+| **Backend ↔ Executor Manager** | HTTP | Task scheduling |
+| **Executor Manager ↔ Executor** | Docker API | Container management |
+| **Executor ↔ Agent** | Process invocation | Task execution |
+
+### WebSocket Architecture (Socket.IO)
+
+The chat system uses Socket.IO for bidirectional real-time communication:
+
+**Namespace**: `/chat`
+**Path**: `/socket.io`
+
+**Client → Server Events**:
+| Event | Purpose |
+|-------|---------|
+| `chat:send` | Send a chat message |
+| `chat:cancel` | Cancel ongoing stream |
+| `chat:resume` | Resume stream after reconnect |
+| `task:join` | Join a task room |
+| `task:leave` | Leave a task room |
+| `history:sync` | Sync message history |
+
+**Server → Client Events**:
+| Event | Purpose |
+|-------|---------|
+| `chat:start` | AI started generating response |
+| `chat:chunk` | Streaming content chunk |
+| `chat:done` | AI response completed |
+| `chat:error` | Error occurred |
+| `chat:cancelled` | Stream was cancelled |
+| `chat:message` | Non-streaming message (group chat) |
+| `task:created` | New task created |
+| `task:status` | Task status update |
+
+**Room-based Message Routing**:
+- User Room: `user:{user_id}` - For personal notifications
+- Task Room: `task:{task_id}` - For chat streaming and group chat
+
+**Redis Adapter**: Enables multi-worker support for horizontal scaling
+
+---
+
+## 🛠️ Technology Stack
+
+### Frontend Stack
+
+```typescript
+{
+  "framework": "Next.js 15",
+  "runtime": "React 19",
+  "language": "TypeScript 5.7",
+  "ui": [
+    "Ant Design 5.27",
+    "Tailwind CSS 3.4",
+    "Heroicons 2.2"
+  ],
+  "i18n": "i18next 25.5",
+  "markdown": "react-markdown",
+  "devTools": [
+    "ESLint 9.17",
+    "Prettier 3.4",
+    "Husky 9.1"
+  ]
+}
+```
+
+### Backend Stack
+
+```python
+{
+    "framework": "FastAPI >= 0.68.0",
+    "language": "Python 3.10+",
+    "orm": "SQLAlchemy >= 2.0.28",
+    "database": "PyMySQL 1.1.0",
+    "auth": [
+        "PyJWT >= 2.8.0",
+        "python-jose 3.3.0",
+        "passlib 1.7.4"
+    ],
+    "async": [
+        "asyncio >= 3.4.3",
+        "aiohttp >= 3.8.0",
+        "httpx >= 0.19.0"
+    ],
+    "cache": "redis >= 4.5.0",
+    "security": [
+        "cryptography >= 41.0.5",
+        "pycryptodome >= 3.20.0"
+    ],
+    "testing": [
+        "pytest >= 7.4.0",
+        "pytest-asyncio >= 0.21.0"
+    ]
+}
+```
+
+### Infrastructure
+
+```yaml
+database:
+  mysql: "9.4"
+
+cache:
+  redis: "7"
+
+container:
+  docker: "latest"
+  docker-compose: "latest"
+
+executor_engines:
+  - "Claude Code (Anthropic)"
+  - "Agno"
+  - "Dify"
+```
+
+---
+
+## 🎯 Design Principles
+
+### 1. Declarative API Design
+
+Following Kubernetes CRD design patterns:
+- ✅ Resources defined declaratively in YAML
+- ✅ Clear resource hierarchy
+- ✅ Unified API version management
+- ✅ Separation of status and desired state
+
+**Example**:
+```yaml
+apiVersion: agent.wecode.io/v1
+kind: Bot
+metadata:
+  name: developer-bot
+  namespace: default
+spec:
+  # Desired state
+  ghostRef:
+    name: developer-ghost
+status:
+  # Actual state
+  state: "Available"
+```
+
+### 2. Separation of Concerns
+
+- 🎨 **Frontend**: Focused on user interaction and presentation
+- ⚙️ **Backend**: Focused on business logic and data management
+- 🚀 **Execution Layer**: Focused on task scheduling and resource isolation
+- 🤖 **Agent Layer**: Focused on AI capability provision
+
+### 3. Microservices Architecture
+
+- 🔧 Each component deployed independently
+- 📦 Containerized packaging
+- 🔄 Loose coupling between services
+- 📊 Independent scaling capability
+
+### 4. Security First
+
+- 🔒 JWT authentication mechanism
+- 🛡️ AES encryption for sensitive data
+- 🔐 Sandbox environment isolation
+- 🚫 Principle of least privilege
+- 👥 Role-based access control (admin/user roles)
+
+### 5. Observability
+
+- 📝 Structured logging (structlog)
+- 📊 Status tracking and monitoring
+- 🔍 Detailed error information
+- 📈 Performance metrics collection
+
+---
+
+## 📈 Scalability and Deployment
+
+### Horizontal Scaling
+
+#### Frontend Scaling
+```yaml
+# Multi-instance deployment
+frontend:
+  replicas: 3
+  load_balancer: nginx
+```
+
+#### Backend Scaling
+```yaml
+# Stateless design, supports multiple instances
+backend:
+  replicas: 5
+  session: redis
+```
+
+#### Executor Scaling
+```yaml
+# Dynamic creation and destruction
+executor_manager:
+  max_concurrent_tasks: 20
+  auto_scaling: true
+```
+
+### Vertical Scaling
+
+#### Database Optimization
+- Read-write separation
+- Index optimization
+- Query caching
+
+#### Redis Optimization
+- Memory optimization
+- Persistence strategy
+- Cluster mode
+
+### Deployment Modes
+
+#### 1. Single-Machine Deployment (Development/Testing)
 ```bash
-# 运行模式
-CHAT_SHELL_MODE=http              # http | package | cli
-
-# 存储类型
-CHAT_SHELL_STORAGE_TYPE=remote    # memory | sqlite | remote
-
-# Remote Storage（HTTP 模式）
-REMOTE_STORAGE_URL=http://backend:8000/api/internal
-REMOTE_STORAGE_TOKEN=<token>
-
-# SQLite Storage（CLI 模式）
-SQLITE_DB_PATH=~/.chat_shell/history.db
-
-# HTTP 服务器
-HTTP_HOST=0.0.0.0
-HTTP_PORT=8001
-
-# LLM API Keys
-ANTHROPIC_API_KEY=<key>
-OPENAI_API_KEY=<key>
-GOOGLE_API_KEY=<key>
-
-# 默认模型配置
-DEFAULT_MODEL=claude-3-5-sonnet-20241022
-DEFAULT_TEMPERATURE=0.7
-DEFAULT_MAX_TOKENS=4096
-
-# 聊天配置
-MAX_CONCURRENT_CHATS=50
-CHAT_HISTORY_MAX_MESSAGES=50
+docker-compose up -d
 ```
 
-### 7.2 项目结构
+**Use Cases**:
+- Local development
+- Feature testing
+- Small-scale usage
 
-```
-chat_shell/
-├── __init__.py           # 包入口，导出主要接口
-├── main.py               # FastAPI 应用入口
-├── agent.py              # ChatAgent 核心实现
-├── interface.py          # ChatInterface 抽象接口
-├── agents/               # LangGraph Agent 构建器
-├── api/                  # HTTP API 层
-│   ├── v1/               # v1 版本 API
-│   └── health.py         # 健康检查
-├── cli/                  # 命令行工具
-│   └── commands/         # CLI 命令实现
-├── core/                 # 核心基础设施
-├── services/             # 业务服务层
-│   ├── chat_service.py   # 聊天服务
-│   ├── context.py        # 上下文管理
-│   ├── storage/          # 存储层
-│   └── streaming/        # 流式响应
-├── tools/                # 工具系统
-│   ├── builtin/          # 内置工具
-│   ├── mcp/              # MCP 工具
-│   └── base.py           # 工具基类和注册表
-├── models/               # LLM 模型工厂
-├── messages/             # 消息转换
-├── compression/          # 消息压缩
-├── history/              # 历史管理
-├── prompts/              # 提示词模板
-├── schemas/              # 数据结构
-├── storage/              # 存储实现
-├── tables/               # 表格处理
-└── db_models/            # 数据库模型
+#### 2. Distributed Deployment (Production)
+```yaml
+architecture:
+  frontend: "Multi-instance + Nginx load balancing"
+  backend: "Multi-instance + API gateway"
+  mysql: "Master-slave replication + read-write separation"
+  redis: "Redis Cluster"
+  executor: "Dynamic scaling"
 ```
 
-## 8. 总结
+**Use Cases**:
+- Production environment
+- High concurrency requirements
+- Large-scale teams
 
-Chat Shell 是一个设计良好的模块化 AI Agent 服务，具有以下特点：
+#### 3. Cloud-Native Deployment (Kubernetes)
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wegent-backend
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+      - name: backend
+        image: wegent-backend:latest
+```
 
-1. **灵活的部署模式**：支持 HTTP、Package、CLI 三种模式，适应不同场景
-2. **可扩展的工具系统**：内置工具 + 动态技能 + MCP 协议，满足多样化需求
-3. **强大的流式能力**：SSE 实时推送 + 会话恢复 + 取消支持
-4. **完善的可观测性**：OpenTelemetry + Structlog，便于问题排查
-5. **清晰的分层架构**：API → Service → Agent → Tools，职责明确
-6. **生产就绪**：配置管理、错误处理、资源清理、优雅关闭
+**Use Cases**:
+- Cloud environments
+- Auto-scaling
+- High availability requirements
 
-该架构为构建企业级 AI Agent 应用提供了坚实的基础，同时保持了良好的可扩展性和可维护性。
+### Performance Metrics
+
+| Metric | Target Value | Description |
+|--------|--------------|-------------|
+| **API Response Time** | < 200ms | P95 latency |
+| **Task Startup Time** | < 5s | From creation to execution |
+| **Concurrent Tasks** | 5-100 | Configurable |
+| **Database Connection Pool** | 20 | Default configuration |
+| **WebSocket Connections** | 1000+ | Concurrent online |
+
+### Monitoring and Alerting
+
+#### Key Metrics
+- 📊 Task success rate
+- ⏱️ Task execution time
+- 💾 Database performance
+- 🔴 Redis cache hit rate
+- 🐳 Container resource usage
+
+#### Log Collection
+```python
+import structlog
+
+logger = structlog.get_logger()
+logger.info("task.created",
+    task_id=task.id,
+    team=task.team_ref.name)
+```
+
+---
+
+## 🔗 Related Resources
+
+- [Core Concepts](../concepts/core-concepts.md) - Understand Wegent's core concepts
+- [Collaboration Models](../concepts/collaboration-models.md) - Deep dive into collaboration patterns
+- [YAML Specification](../reference/yaml-specification.md) - Complete configuration guide
+- [CRD Architecture](./crd-architecture.md) - CRD design details
+
+---
+
+<p align="center">Understanding the architecture is key to mastering Wegent! 🚀</p>
