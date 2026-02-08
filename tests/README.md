@@ -38,8 +38,9 @@ tests/
 │   │   │   ├── test_team_service.py    # Team service with member validation (7 tests)
 │   │   │   ├── test_skill_service.py   # Skill service (6 tests)
 │   │   │   └── test_task_service.py    # Task service with lifecycle (10 tests)
-│   │   └── api/                   # RESTful API tests (Epic 10)
-│   │       └── test_kinds.py      # All CRD API endpoints (47 tests)
+│   │   ├── api/                   # RESTful API tests (Epic 10)
+│   │   │   ├── test_kinds.py      # All CRD API endpoints (47 tests)
+│   │   │   └── test_auth.py       # Authentication API (24 tests, Epic 11)
 │   └── chat_shell/                # Chat shell tests
 │       ├── agent/                 # Agent system tests (Epic 1)
 │       ├── api/                   # API tests (Epic 4)
@@ -60,10 +61,10 @@ tests/
 
 | Category | Count |
 |----------|-------|
-| **Total** | 536 tests |
-| **Backend** | 189 tests |
+| **Total** | 560 tests |
+| **Backend** | 213 tests |
 | **Chat Shell** | 324+ tests |
-| **Unit** | 505 tests |
+| **Unit** | 529 tests |
 | **Integration** | 8 tests |
 
 ### Backend Test Breakdown
@@ -74,9 +75,10 @@ tests/
 | **Schemas** | 76 tests (Epic 8) |
 | **Services** | 48 tests (Epic 9) |
 | **API** | 47 tests (Epic 10) |
+| **Auth** | 24 tests (Epic 11) |
 | **Migrations** | 5 tests |
 | **Database Connection** | 3 tests |
-| **Total Backend** | 189 tests |
+| **Total Backend** | 213 tests |
 
 ## pytest Markers
 

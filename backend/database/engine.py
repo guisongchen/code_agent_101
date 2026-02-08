@@ -84,6 +84,7 @@ async def init_db() -> None:
     from backend.database.base import Base
     from backend.models.kinds import Kind  # noqa: F401
     from backend.models.tasks import Task  # noqa: F401
+    from backend.models.user import User  # noqa: F401
 
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -94,6 +95,7 @@ def init_db_sync() -> None:
     from backend.database.base import Base
     from backend.models.kinds import Kind  # noqa: F401
     from backend.models.tasks import Task  # noqa: F401
+    from backend.models.user import User  # noqa: F401
 
     Base.metadata.create_all(bind=sync_engine)
 

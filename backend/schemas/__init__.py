@@ -3,14 +3,22 @@
 Epic 8: Pydantic Schemas & Validation
 """
 
-from backend.schemas.base import Metadata, ResourceRef, BaseCRD, BaseSpec
-from backend.schemas.ghost import GhostSpec, GhostCRD, GhostCreateRequest, GhostResponse
-from backend.schemas.model import ModelSpec, ModelCRD, ModelCreateRequest, ModelResponse
-from backend.schemas.shell import ShellSpec, ShellCRD, ShellCreateRequest, ShellResponse
-from backend.schemas.bot import BotSpec, BotCRD, BotCreateRequest, BotResponse
-from backend.schemas.team import TeamSpec, TeamCRD, TeamCreateRequest, TeamResponse
-from backend.schemas.skill import SkillSpec, SkillCRD, SkillCreateRequest, SkillResponse
+from backend.schemas.auth import (
+    CurrentUser,
+    LoginRequest,
+    RegisterRequest,
+    Token,
+    TokenPayload,
+    UserResponse,
+)
+from backend.schemas.base import BaseCRD, BaseSpec, Metadata, ResourceRef
+from backend.schemas.bot import BotCRD, BotCreateRequest, BotResponse, BotSpec
+from backend.schemas.ghost import GhostCRD, GhostCreateRequest, GhostResponse, GhostSpec
+from backend.schemas.model import ModelCRD, ModelCreateRequest, ModelResponse, ModelSpec
+from backend.schemas.shell import ShellCRD, ShellCreateRequest, ShellResponse, ShellSpec
+from backend.schemas.skill import SkillCRD, SkillCreateRequest, SkillResponse, SkillSpec
 from backend.schemas.task import TaskCreateRequest, TaskResponse, TaskStatusUpdate
+from backend.schemas.team import TeamCRD, TeamCreateRequest, TeamResponse, TeamSpec
 
 __all__ = [
     # Base schemas
@@ -52,4 +60,11 @@ __all__ = [
     "TaskCreateRequest",
     "TaskResponse",
     "TaskStatusUpdate",
+    # Auth schemas
+    "Token",
+    "TokenPayload",
+    "LoginRequest",
+    "RegisterRequest",
+    "UserResponse",
+    "CurrentUser",
 ]
