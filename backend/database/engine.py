@@ -11,11 +11,16 @@ from sqlalchemy.orm import Session, sessionmaker
 # Database URL from environment or default to SQLite for development
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/wegent"
+    "sqlite+aiosqlite:///./wegent.db"
 )
 
 # For sync operations (Alembic migrations)
-SYNC_DATABASE_URL = DATABASE_URL.replace("+asyncpg", "+psycopg2")
+if "+asyncpg" in DATABASE_URL:
+    SYNC_DATABASE_URL = DATABASE_URL.replace("+asyncpg", "+psycopg2")
+elif "+aiosqlite" in DATABASE_URL:
+    SYNC_DATABASE_URL = DATABASE_URL.replace("+aiosqlite", "")
+else:
+    SYNC_DATABASE_URL = DATABASE_URL
 
 # Create async engine with connection pooling
 async_engine = create_async_engine(

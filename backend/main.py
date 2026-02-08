@@ -54,7 +54,7 @@ def create_app() -> FastAPI:
 
     # Mount static files for UI
     import os
-    frontend_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+    frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
     app.mount("/ui", StaticFiles(directory=frontend_dir, html=True), name="ui")
 
     @app.get("/health")
