@@ -1,154 +1,130 @@
-# Backend MVP - Epic Phase 1: CRD Management System
+# Wegent Backend - Epic Phase 1 (Core CRD Management)
 
 ## Overview
-
-Build the Backend Core CRD (Custom Resource Definition) management system to enable basic agent creation through RESTful APIs. This phase focuses on creating the foundational backend infrastructure that connects all modules, allowing users to define agents via Ghost (system prompt), Model, Shell, Bot, and Team resources.
+This phase implements the foundational Backend CRD (Custom Resource Definition) management system that enables users to create and manage Ghost, Model, Shell, Bot, and Team resources. This is the critical integration hub that connects all modules and provides the declarative API for the Wegent platform.
 
 ---
 
-## Epic 1: Ghost Resource Management
-
-**Goal**: Implement CRD endpoints for Ghost (system prompt) resources
+## Epic 7: Database Schema & Models
+**Goal**: Design and implement the database schema for CRD storage with proper SQLAlchemy models
 
 ### User Stories
-
-- [ ] Implement POST /api/v1/kinds/ghosts - Create Ghost with name, description, system_prompt
-- [ ] Implement GET /api/v1/kinds/ghosts - List all Ghosts with pagination
-- [ ] Implement GET /api/v1/kinds/ghosts/{id} - Get specific Ghost
-- [ ] Implement PUT /api/v1/kinds/ghosts/{id} - Update Ghost
-- [ ] Implement DELETE /api/v1/kinds/ghosts/{id} - Delete Ghost
-- [ ] Create database model for Ghost with fields: id, name, description, system_prompt, created_at, updated_at
+- [ ] Create `kinds` table schema for Ghost, Model, Shell, Bot, Team, Skill resources
+- [ ] Create `tasks` table schema for Task resources (separate lifecycle)
+- [ ] Implement SQLAlchemy 2.0 models with JSON support for flexible spec storage
+- [ ] Add soft delete support via `deleted_at` timestamp
+- [ ] Create unique constraints for (kind, name, namespace) combination
+- [ ] Implement database migration scripts with Alembic
+- [ ] Add database connection pooling and session management
 
 ### Tests
+- [ ] Unit tests for SQLAlchemy models (10 tests)
+- [ ] Migration tests (5 tests)
+- [ ] Database connection tests (3 tests)
+- [ ] **Total: 18 tests passing**
 
-- [ ] Unit tests for Ghost model validation (8 tests)
-- [ ] Unit tests for Ghost CRUD endpoints (15 tests)
-- [ ] Integration tests for Ghost API (6 tests)
+---
+
+## Epic 8: Pydantic Schemas & Validation
+**Goal**: Define Pydantic v2 schemas for all CRD types with proper validation
+
+### User Stories
+- [ ] Create base `Metadata` and `ResourceRef` schemas
+- [ ] Implement `GhostSpec` and `GhostCRD` schemas with field aliases
+- [ ] Implement `ModelSpec` and `ModelCRD` schemas for AI model configuration
+- [ ] Implement `ShellSpec` and `ShellCRD` schemas for runtime environments
+- [ ] Implement `BotSpec` and `BotCRD` schemas with reference validation
+- [ ] Implement `TeamSpec` and `TeamCRD` schemas for multi-bot teams
+- [ ] Create response schemas with `from_orm` support
+- [ ] Add custom validators for resource references
+
+### Tests
+- [ ] Schema validation tests (15 tests)
+- [ ] Field alias tests (8 tests)
+- [ ] Reference validation tests (6 tests)
 - [ ] **Total: 29 tests passing**
 
 ---
 
-## Epic 2: Model Resource Management
-
-**Goal**: Implement CRD endpoints for Model configuration resources
+## Epic 9: CRUD Service Layer
+**Goal**: Implement generic CRUD service base class with resource-specific subclasses
 
 ### User Stories
-
-- [ ] Implement POST /api/v1/kinds/models - Create Model config (provider, model_name, temperature, max_tokens, api_key_ref)
-- [ ] Implement GET /api/v1/kinds/models - List all Models
-- [ ] Implement GET /api/v1/kinds/models/{id} - Get specific Model
-- [ ] Implement PUT /api/v1/kinds/models/{id} - Update Model
-- [ ] Implement DELETE /api/v1/kinds/models/{id} - Delete Model
-- [ ] Support providers: openai, anthropic, google
-- [ ] Create database model for Model config
+- [ ] Create generic `CRDService` base class with type parameters
+- [ ] Implement `get`, `list`, `create`, `delete` methods
+- [ ] Create `GhostService` with Ghost-specific logic
+- [ ] Create `ModelService` for Model resource management
+- [ ] Create `ShellService` for Shell resource management
+- [ ] Create `BotService` with reference validation (Ghost, Shell, Model)
+- [ ] Create `TeamService` with member validation
+- [ ] Implement soft delete logic in delete operations
 
 ### Tests
-
-- [ ] Unit tests for Model config validation (10 tests)
-- [ ] Unit tests for Model CRUD endpoints (15 tests)
-- [ ] Integration tests for Model provider validation (5 tests)
-- [ ] **Total: 30 tests passing**
+- [ ] Service layer unit tests (20 tests)
+- [ ] Reference validation tests (8 tests)
+- [ ] Soft delete tests (4 tests)
+- [ ] **Total: 32 tests passing**
 
 ---
 
-## Epic 3: Shell Resource Management
-
-**Goal**: Implement CRD endpoints for Shell (execution environment) resources
+## Epic 10: RESTful API Endpoints
+**Goal**: Implement Kubernetes-style RESTful API endpoints for all CRD types
 
 ### User Stories
-
-- [ ] Implement POST /api/v1/kinds/shells - Create Shell (type: Chat for MVP, config)
-- [ ] Implement GET /api/v1/kinds/shells - List all Shells
-- [ ] Implement GET /api/v1/kinds/shells/{id} - Get specific Shell
-- [ ] Implement PUT /api/v1/kinds/shells/{id} - Update Shell
-- [ ] Implement DELETE /api/v1/kinds/shells/{id} - Delete Shell
-- [ ] MVP supports only 'Chat' type (direct chat_shell integration)
-- [ ] Skip Docker-based executors for post-MVP
+- [ ] Create `POST /api/v1/kinds/ghosts` endpoint for Ghost creation
+- [ ] Create `GET /api/v1/kinds/ghosts` endpoint for listing Ghosts
+- [ ] Create `GET /api/v1/kinds/ghosts/{name}` endpoint for Ghost retrieval
+- [ ] Create `DELETE /api/v1/kinds/ghosts/{name}` endpoint for Ghost deletion
+- [ ] Create `POST /api/v1/kinds/models` endpoint for Model creation
+- [ ] Create `GET /api/v1/kinds/models` endpoint for listing Models
+- [ ] Create `POST /api/v1/kinds/shells` endpoint for Shell creation
+- [ ] Create `GET /api/v1/kinds/shells` endpoint for listing Shells
+- [ ] Create `POST /api/v1/kinds/bots` endpoint for Bot creation with reference validation
+- [ ] Create `GET /api/v1/kinds/bots` endpoint for listing Bots
+- [ ] Create `POST /api/v1/kinds/teams` endpoint for Team creation
+- [ ] Create `GET /api/v1/kinds/teams` endpoint for listing Teams
+- [ ] Create `GET /api/v1/kinds/teams/{name}` endpoint for Team retrieval
+- [ ] Implement proper HTTP status codes (201, 404, 409, 204)
+- [ ] Add namespace query parameter support
 
 ### Tests
-
-- [ ] Unit tests for Shell model validation (6 tests)
-- [ ] Unit tests for Shell CRUD endpoints (12 tests)
-- [ ] Integration tests for Shell type validation (4 tests)
-- [ ] **Total: 22 tests passing**
+- [ ] API endpoint tests (25 tests)
+- [ ] HTTP status code tests (10 tests)
+- [ ] Namespace filtering tests (5 tests)
+- [ ] **Total: 40 tests passing**
 
 ---
 
-## Epic 4: Bot Resource Management
-
-**Goal**: Implement CRD endpoints for Bot (Ghost + Shell + Model) resources
-
-### User Stories
-
-- [ ] Implement POST /api/v1/kinds/bots - Create Bot by referencing Ghost, Shell, and Model
-- [ ] Implement GET /api/v1/kinds/bots - List all Bots
-- [ ] Implement GET /api/v1/kinds/bots/{id} - Get specific Bot with resolved references
-- [ ] Implement PUT /api/v1/kinds/bots/{id} - Update Bot
-- [ ] Implement DELETE /api/v1/kinds/bots/{id} - Delete Bot
-- [ ] Create Bot model linking ghost_id, shell_id, model_id
-- [ ] Implement validation that referenced resources exist
-
-### Tests
-
-- [ ] Unit tests for Bot model validation (8 tests)
-- [ ] Unit tests for Bot CRUD endpoints (15 tests)
-- [ ] Integration tests for Bot reference validation (6 tests)
-- [ ] **Total: 29 tests passing**
-
----
-
-## Epic 5: Team Resource Management
-
-**Goal**: Implement CRD endpoints for Team (group of Bots) resources
+## Epic 11: Authentication & Authorization
+**Goal**: Implement JWT-based authentication and role-based access control
 
 ### User Stories
-
-- [ ] Implement POST /api/v1/kinds/teams - Create Team with members (single Bot for MVP)
-- [ ] Implement GET /api/v1/kinds/teams - List all Teams
-- [ ] Implement GET /api/v1/kinds/teams/{id} - Get specific Team with member details
-- [ ] Implement PUT /api/v1/kinds/teams/{id} - Update Team
-- [ ] Implement DELETE /api/v1/kinds/teams/{id} - Delete Team
-- [ ] Create Team model with members array (JSON field for future multi-bot support)
-- [ ] Implement validation that referenced bots exist
-
-### Tests
-
-- [ ] Unit tests for Team model validation (6 tests)
-- [ ] Unit tests for Team CRUD endpoints (12 tests)
-- [ ] Integration tests for Team member validation (4 tests)
-- [ ] **Total: 22 tests passing**
-
----
-
-## Epic 6: Database Schema & Infrastructure
-
-**Goal**: Set up database infrastructure and shared CRD patterns
-
-### User Stories
-
-- [ ] Design CRD base model with common fields (id, created_at, updated_at, owner_id)
-- [ ] Implement database migrations using Alembic
-- [ ] Create CRD service layer with common CRUD operations
-- [ ] Implement API pagination and filtering
-- [ ] Add API authentication middleware (JWT token validation)
-- [ ] Create CRD event hooks (pre/post create, update, delete)
-- [ ] Configure database connection pooling and configuration
+- [ ] Implement JWT token generation and validation
+- [ ] Create `POST /api/v1/auth/login` endpoint
+- [ ] Create `POST /api/v1/auth/register` endpoint
+- [ ] Add `created_by` tracking to CRD resources
+- [ ] Implement namespace-based resource isolation
+- [ ] Add admin/user role distinction
+- [ ] Create dependency injection for current user
+- [ ] Protect all CRD endpoints with authentication
 
 ### Tests
-
-- [ ] Unit tests for CRD base model (5 tests)
-- [ ] Unit tests for CRD service layer (10 tests)
-- [ ] Integration tests for authentication middleware (6 tests)
-- [ ] Integration tests for database migrations (4 tests)
-- [ ] **Total: 25 tests passing**
+- [ ] Authentication tests (10 tests)
+- [ ] Authorization tests (8 tests)
+- [ ] JWT token tests (6 tests)
+- [ ] **Total: 24 tests passing**
 
 ---
 
 ## Success Criteria for Phase 1
 
-- All CRD endpoints for Ghost, Model, Shell, Bot, and Team are implemented and functional
-- Database schema supports all CRD resources with proper relationships
-- API authentication protects all endpoints
-- Users can create a complete agent definition: Ghost → Model → Shell → Bot → Team
-- API returns proper error messages and validation feedback
-- Unit tests cover all CRUD operations with 80%+ coverage
+- Users can create Ghost resources with system prompts via REST API
+- Users can create Model resources with AI configuration
+- Users can create Shell resources (Chat type for MVP)
+- Users can create Bot resources that reference Ghost, Shell, and Model
+- Users can create Team resources with single Bot for MVP
+- All resources support namespace isolation
+- JWT authentication protects all endpoints
+- Soft delete allows resource recovery
+- API follows Kubernetes-style conventions
+- 143+ tests passing with >80% code coverage
