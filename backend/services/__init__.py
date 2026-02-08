@@ -14,6 +14,7 @@ from backend.services.session import SessionService
 from backend.services.shell import ShellService
 from backend.services.skill import SkillService
 from backend.services.task import TaskService
+from backend.services.task_executor import TaskExecutionError, TaskExecutor, TaskQueue, get_task_queue
 from backend.services.team import TeamService
 
 __all__ = [
@@ -29,4 +30,8 @@ __all__ = [
     "AuthService",
     "MessageService",
     "SessionService",
+    "TaskExecutor",
+    "TaskExecutionError",
+    "TaskQueue",
+    "get_task_queue",
 ]

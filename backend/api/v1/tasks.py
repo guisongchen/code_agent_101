@@ -4,6 +4,7 @@ Implements Task Management API with lifecycle operations.
 
 Epic 12: Task Management API
 Epic 17: Real-time Event Broadcasting
+Epic 18: Chat Execution Engine Integration
 """
 
 from typing import List, Optional
@@ -15,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from backend.database.engine import get_db_session
 from backend.models.tasks import TaskStatus
 from backend.schemas import TaskCreateRequest, TaskResponse, TaskStatusUpdate
-from backend.services import TaskService
+from backend.services import TaskExecutor, TaskService, TaskExecutionError
 from backend.websocket.task_events import get_task_event_broadcaster
 
 router = APIRouter()
@@ -262,3 +263,64 @@ async def delete_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Task '{task_id}' not found",
         )
+
+
+@router.post(
+    "/tasks/{task_id}/execute",
+    response_model=TaskResponse,
+    summary="Execute a Task",
+    description="Execute a task with chat_shell integration. This runs the task through the AI agent and returns the result.",
+)
+async def execute_task(
+    task_id: UUID,
+    bot_name: Optional[str] = Query(default=None, description="Bot name to use for execution"),
+    namespace: str = Query(default="default", description="Namespace for bot lookup"),
+    session: AsyncSession = Depends(get_db_session),
+) -> TaskResponse:
+    """Execute a task with chat_shell integration.
+
+    Args:
+        task_id: Task UUID.
+        bot_name: Optional bot name (extracted from task spec if not provided).
+        namespace: Namespace for bot lookup.
+        session: Database session.
+
+    Returns:
+        Completed TaskResponse.
+
+    Raises:
+        HTTPException: 404 if task not found.
+        HTTPException: 400 if bot configuration is invalid.
+        HTTPException: 500 if execution fails.
+    """
+    # Verify task exists
+    task_service = TaskService(session)
+    task = await task_service.get(task_id)
+    if not task:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Task '{task_id}' not found",
+        )
+
+    # Check task is in valid state
+    if task.status not in (TaskStatus.PENDING, TaskStatus.RUNNING):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot execute task in {task.status.value} state",
+        )
+
+    # Execute task
+    executor = TaskExecutor(session)
+    try:
+        result = await executor.execute_task(task_id, bot_name=bot_name, namespace=namespace)
+        return result
+    except TaskExecutionError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        ) from e
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
