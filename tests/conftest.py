@@ -30,6 +30,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "epic_9: Epic 9 - CRUD Service Layer")
     config.addinivalue_line("markers", "epic_10: Epic 10 - RESTful API Endpoints")
     config.addinivalue_line("markers", "epic_11: Epic 11 - Authentication & Authorization")
+    config.addinivalue_line("markers", "epic_12: Epic 12 - Task Management API")
 
     # Component markers
     config.addinivalue_line("markers", "backend: Backend CRD management tests")

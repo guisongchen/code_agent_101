@@ -24,7 +24,8 @@ async def async_client():
     app = create_app()
 
     # Override the database dependency
-    from backend.api.v1.kinds import get_db_session
+    from backend.api.v1.kinds import get_db_session as kinds_get_db_session
+    from backend.api.v1.tasks import get_db_session as tasks_get_db_session
 
     async def override_get_db_session():
         async_session = async_sessionmaker(
@@ -38,7 +39,8 @@ async def async_client():
             yield session
             await session.commit()
 
-    app.dependency_overrides[get_db_session] = override_get_db_session
+    app.dependency_overrides[kinds_get_db_session] = override_get_db_session
+    app.dependency_overrides[tasks_get_db_session] = override_get_db_session
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
