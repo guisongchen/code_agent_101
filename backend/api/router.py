@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from backend.api.v1 import auth, chat, kinds, tasks
+from backend.api.v1 import auth, chat, chat_ws, kinds, tasks
 
 api_router = APIRouter()
 
@@ -11,3 +11,6 @@ api_router.include_router(kinds.router, prefix="/v1", tags=["kinds"])
 api_router.include_router(tasks.router, prefix="/v1", tags=["tasks"])
 api_router.include_router(chat.router, prefix="/v1", tags=["chat"])
 api_router.include_router(auth.router, prefix="/v1", tags=["auth"])
+
+# Include WebSocket routes (these are handled separately by FastAPI)
+api_router.include_router(chat_ws.router, prefix="/v1")

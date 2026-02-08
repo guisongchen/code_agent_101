@@ -12,6 +12,7 @@ from backend.schemas.auth import (
     UserResponse,
 )
 from backend.schemas.base import BaseCRD, BaseSpec, Metadata, ResourceRef
+from backend.schemas.bot import BotCRD, BotCreateRequest, BotResponse, BotSpec
 from backend.schemas.chat import (
     ChatEvent,
     ChatMessage,
@@ -20,21 +21,27 @@ from backend.schemas.chat import (
     ChatSessionInfo,
     ChatValidationResponse,
 )
-from backend.schemas.bot import BotCRD, BotCreateRequest, BotResponse, BotSpec
 from backend.schemas.ghost import GhostCRD, GhostCreateRequest, GhostResponse, GhostSpec
 from backend.schemas.model import ModelCRD, ModelCreateRequest, ModelResponse, ModelSpec
 from backend.schemas.shell import ShellCRD, ShellCreateRequest, ShellResponse, ShellSpec
 from backend.schemas.skill import SkillCRD, SkillCreateRequest, SkillResponse, SkillSpec
-from backend.schemas.chat import (
-    ChatEvent,
-    ChatMessage,
-    ChatRequest,
-    ChatResponse,
-    ChatSessionInfo,
-    ChatValidationResponse,
-)
 from backend.schemas.task import TaskCreateRequest, TaskResponse, TaskStatusUpdate
 from backend.schemas.team import TeamCRD, TeamCreateRequest, TeamResponse, TeamSpec
+from backend.schemas.websocket import (
+    ChatCancelledEvent,
+    ChatChunkEvent,
+    ChatDoneEvent,
+    ChatErrorEvent,
+    ChatSendEvent,
+    ChatStartEvent,
+    ChatThinkingEvent,
+    ChatToolResultEvent,
+    ChatToolStartEvent,
+    PongEvent,
+    RoomInfo,
+    TaskStatusEvent,
+    WebSocketConnectionInfo,
+)
 
 __all__ = [
     # Base schemas
@@ -83,6 +90,20 @@ __all__ = [
     "ChatEvent",
     "ChatValidationResponse",
     "ChatSessionInfo",
+    # WebSocket schemas
+    "ChatSendEvent",
+    "ChatStartEvent",
+    "ChatChunkEvent",
+    "ChatDoneEvent",
+    "ChatErrorEvent",
+    "ChatCancelledEvent",
+    "ChatToolStartEvent",
+    "ChatToolResultEvent",
+    "ChatThinkingEvent",
+    "TaskStatusEvent",
+    "PongEvent",
+    "WebSocketConnectionInfo",
+    "RoomInfo",
     # Auth schemas
     "Token",
     "TokenPayload",
