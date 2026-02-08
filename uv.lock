@@ -424,6 +424,7 @@ anthropic = [
     { name = "langchain-anthropic" },
 ]
 dev = [
+    { name = "aiosqlite" },
     { name = "black" },
     { name = "flake8" },
     { name = "isort" },
@@ -439,6 +440,7 @@ google = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiosqlite", marker = "extra == 'dev'", specifier = ">=0.19.0" },
     { name = "alembic", specifier = ">=1.12.0" },
     { name = "asyncpg", specifier = ">=0.29.0" },
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },

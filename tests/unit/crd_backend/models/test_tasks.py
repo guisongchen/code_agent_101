@@ -79,7 +79,7 @@ class TestTaskModel:
         db_session.commit()
 
         # Cannot complete from PENDING
-        with pytest.raises(ValueError, match="Cannot complete task in.*pending.*state"):
+        with pytest.raises(ValueError, match="Cannot complete task in.*PENDING.*state"):
             task.complete()
 
         # Start then complete
@@ -87,7 +87,7 @@ class TestTaskModel:
         db_session.commit()
 
         # Cannot start from RUNNING
-        with pytest.raises(ValueError, match="Cannot start task in.*running.*state"):
+        with pytest.raises(ValueError, match="Cannot start task in.*RUNNING.*state"):
             task.start()
 
         # Complete the task
@@ -95,7 +95,7 @@ class TestTaskModel:
         db_session.commit()
 
         # Cannot fail from terminal state (COMPLETED)
-        with pytest.raises(ValueError, match="Cannot fail task in.*completed.*state"):
+        with pytest.raises(ValueError, match="Cannot fail task in.*COMPLETED.*state"):
             task.fail("error")
 
     def test_task_to_dict(self, db_session, team):

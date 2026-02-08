@@ -71,27 +71,29 @@ This phase implements the foundational Backend CRD (Custom Resource Definition) 
 **Goal**: Implement Kubernetes-style RESTful API endpoints for all CRD types
 
 ### User Stories
-- [ ] Create `POST /api/v1/kinds/ghosts` endpoint for Ghost creation
-- [ ] Create `GET /api/v1/kinds/ghosts` endpoint for listing Ghosts
-- [ ] Create `GET /api/v1/kinds/ghosts/{name}` endpoint for Ghost retrieval
-- [ ] Create `DELETE /api/v1/kinds/ghosts/{name}` endpoint for Ghost deletion
-- [ ] Create `POST /api/v1/kinds/models` endpoint for Model creation
-- [ ] Create `GET /api/v1/kinds/models` endpoint for listing Models
-- [ ] Create `POST /api/v1/kinds/shells` endpoint for Shell creation
-- [ ] Create `GET /api/v1/kinds/shells` endpoint for listing Shells
-- [ ] Create `POST /api/v1/kinds/bots` endpoint for Bot creation with reference validation
-- [ ] Create `GET /api/v1/kinds/bots` endpoint for listing Bots
-- [ ] Create `POST /api/v1/kinds/teams` endpoint for Team creation
-- [ ] Create `GET /api/v1/kinds/teams` endpoint for listing Teams
-- [ ] Create `GET /api/v1/kinds/teams/{name}` endpoint for Team retrieval
-- [ ] Implement proper HTTP status codes (201, 404, 409, 204)
-- [ ] Add namespace query parameter support
+- [x] Create `POST /api/v1/kinds/ghosts` endpoint for Ghost creation
+- [x] Create `GET /api/v1/kinds/ghosts` endpoint for listing Ghosts
+- [x] Create `GET /api/v1/kinds/ghosts/{name}` endpoint for Ghost retrieval
+- [x] Create `DELETE /api/v1/kinds/ghosts/{name}` endpoint for Ghost deletion
+- [x] Create `POST /api/v1/kinds/models` endpoint for Model creation
+- [x] Create `GET /api/v1/kinds/models` endpoint for listing Models
+- [x] Create `POST /api/v1/kinds/shells` endpoint for Shell creation
+- [x] Create `GET /api/v1/kinds/shells` endpoint for listing Shells
+- [x] Create `POST /api/v1/kinds/bots` endpoint for Bot creation with reference validation
+- [x] Create `GET /api/v1/kinds/bots` endpoint for listing Bots
+- [x] Create `POST /api/v1/kinds/teams` endpoint for Team creation
+- [x] Create `GET /api/v1/kinds/teams` endpoint for listing Teams
+- [x] Create `GET /api/v1/kinds/teams/{name}` endpoint for Team retrieval
+- [x] Create `POST /api/v1/kinds/skills` endpoint for Skill creation
+- [x] Create `GET /api/v1/kinds/skills` endpoint for listing Skills
+- [x] Implement proper HTTP status codes (201, 404, 409, 204)
+- [x] Add namespace query parameter support
 
 ### Tests
-- [ ] API endpoint tests (25 tests)
-- [ ] HTTP status code tests (10 tests)
-- [ ] Namespace filtering tests (5 tests)
-- [ ] **Total: 40 tests passing**
+- [x] API endpoint tests (42 tests)
+- [x] HTTP status code tests (included in endpoint tests)
+- [x] Namespace filtering tests (included in endpoint tests)
+- [x] **Total: 47 tests passing**
 
 ---
 

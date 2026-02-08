@@ -102,3 +102,22 @@ async def close_db() -> None:
     """Close database connections."""
     await async_engine.dispose()
     sync_engine.dispose()
+
+
+# FastAPI dependency for database sessions
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    """Get an async database session for FastAPI dependency injection.
+
+    Yields:
+        AsyncSession: Database session that will be committed on success
+            or rolled back on exception.
+    """
+    session = AsyncSessionLocal()
+    try:
+        yield session
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
+    finally:
+        await session.close()
