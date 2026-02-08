@@ -8,6 +8,7 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from backend.api import api_router
 from backend.database.engine import close_db, init_db
@@ -50,6 +51,9 @@ def create_app() -> FastAPI:
 
     # Include API routes
     app.include_router(api_router, prefix="/api")
+
+    # Mount static files for UI
+    app.mount("/ui", StaticFiles(directory="frontend", html=True), name="ui")
 
     @app.get("/health")
     async def health_check() -> dict:

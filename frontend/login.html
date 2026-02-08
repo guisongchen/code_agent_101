@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wegent Backend - Login</title>
+    <link rel="stylesheet" href="/ui/css/styles.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-header h1 {
+            color: #1a202c;
+            font-size: 1.875rem;
+            margin-bottom: 0.5rem;
+        }
+        .login-header p {
+            color: #718096;
+        }
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 0.875rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #718096;
+        }
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Wegent</h1>
+            <p>Backend Management Console</p>
+        </div>
+
+        <div id="error-message" class="error-message"></div>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn-login" id="login-btn">Sign In</button>
+        </form>
+
+        <div class="register-link">
+            <p>Don't have an account? <a href="#" onclick="showRegister()">Register</a></p>
+        </div>
+    </div>
+
+    <script src="/ui/js/auth.js"></script>
+    <script src="/ui/js/api.js"></script>
+    <script>
+        // Check if already logged in
+        if (isAuthenticated()) {
+            window.location.href = '/ui/index.html';
+        }
+
+        const loginForm = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+        const loginBtn = document.getElementById('login-btn');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing in...';
+            errorMessage.style.display = 'none';
+
+            try {
+                const result = await login(username, password);
+                setToken(result.accessToken);
+                window.location.href = '/ui/index.html';
+            } catch (error) {
+                errorMessage.textContent = error.message || 'Login failed. Please check your credentials.';
+                errorMessage.style.display = 'block';
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Sign In';
+            }
+        });
+
+        function showRegister() {
+            // For now, users need to register via API
+            alert('Please use the API to register: POST /api/v1/auth/register\n\nExample:\ncurl -X POST http://localhost:8000/api/v1/auth/register \\\n  -H "Content-Type: application/json" \\\n  -d \'{"username": "yourname", "email": "you@example.com", "password": "yourpass"}\'');
+        }
+    </script>
+</body>
+</html>
