@@ -1,4 +1,4 @@
-# ADR 008: Epic 8 - Pydantic Schemas & Validation
+# ADR 008: Pydantic Schemas & Validation
 
 ## Status
 
