@@ -212,6 +212,61 @@ class PongEvent(BaseModel):
     type: str = Field(default="pong", description="Event type")
 
 
+class HistoryRequestEvent(BaseModel):
+    """Client event to request message history."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    type: str = Field(default="history:request", description="Event type")
+    thread_id: Optional[str] = Field(
+        default=None,
+        alias="threadId",
+        description="Thread ID to get history for",
+    )
+    limit: int = Field(
+        default=50,
+        ge=1,
+        le=1000,
+        description="Maximum number of messages",
+    )
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description="Number of messages to skip",
+    )
+
+
+class HistorySyncEvent(BaseModel):
+    """Server event with message history."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    type: str = Field(default="history:sync", description="Event type")
+    task_id: str = Field(
+        ...,
+        alias="taskId",
+        description="Task ID",
+    )
+    thread_id: str = Field(
+        default="default",
+        alias="threadId",
+        description="Thread ID",
+    )
+    messages: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="List of messages",
+    )
+    total: int = Field(
+        ...,
+        description="Total number of messages",
+    )
+    has_more: bool = Field(
+        ...,
+        alias="hasMore",
+        description="Whether there are more messages",
+    )
+
+
 # =============================================================================
 # WebSocket Connection Info
 # =============================================================================

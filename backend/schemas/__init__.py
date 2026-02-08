@@ -25,6 +25,14 @@ from backend.schemas.ghost import GhostCRD, GhostCreateRequest, GhostResponse, G
 from backend.schemas.model import ModelCRD, ModelCreateRequest, ModelResponse, ModelSpec
 from backend.schemas.shell import ShellCRD, ShellCreateRequest, ShellResponse, ShellSpec
 from backend.schemas.skill import SkillCRD, SkillCreateRequest, SkillResponse, SkillSpec
+from backend.schemas.message import (
+    MessageCreateRequest,
+    MessageHistoryRequest,
+    MessageHistoryResponse,
+    MessageHistoryRequestEvent,
+    MessageHistorySyncEvent,
+    MessageResponse,
+)
 from backend.schemas.task import TaskCreateRequest, TaskResponse, TaskStatusUpdate
 from backend.schemas.team import TeamCRD, TeamCreateRequest, TeamResponse, TeamSpec
 from backend.schemas.websocket import (
@@ -37,6 +45,8 @@ from backend.schemas.websocket import (
     ChatThinkingEvent,
     ChatToolResultEvent,
     ChatToolStartEvent,
+    HistoryRequestEvent,
+    HistorySyncEvent,
     PongEvent,
     RoomInfo,
     TaskStatusEvent,
@@ -83,6 +93,13 @@ __all__ = [
     "TaskCreateRequest",
     "TaskResponse",
     "TaskStatusUpdate",
+    # Message schemas
+    "MessageCreateRequest",
+    "MessageResponse",
+    "MessageHistoryRequest",
+    "MessageHistoryResponse",
+    "MessageHistoryRequestEvent",
+    "MessageHistorySyncEvent",
     # Chat schemas
     "ChatMessage",
     "ChatRequest",
@@ -102,6 +119,8 @@ __all__ = [
     "ChatThinkingEvent",
     "TaskStatusEvent",
     "PongEvent",
+    "HistoryRequestEvent",
+    "HistorySyncEvent",
     "WebSocketConnectionInfo",
     "RoomInfo",
     # Auth schemas

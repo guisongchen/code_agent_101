@@ -75,20 +75,20 @@ This phase implements the chat execution engine that integrates the completed ch
 **Goal**: Persist and retrieve chat message history for tasks
 
 ### User Stories
-- [ ] Create message history schema and storage
-- [ ] Implement `history:sync` event for client synchronization
-- [ ] Store user messages in database
-- [ ] Store AI responses in database
-- [ ] Retrieve message history for a Task
-- [ ] Implement pagination for large message histories
-- [ ] Add message metadata (timestamp, tokens used)
-- [ ] Handle message history for resumed sessions
+- [x] Create message history schema and storage
+- [x] Implement `history:sync` event for client synchronization
+- [x] Store user messages in database
+- [x] Store AI responses in database
+- [x] Retrieve message history for a Task
+- [x] Implement pagination for large message histories
+- [x] Add message metadata (timestamp, tokens used)
+- [x] Handle message history for resumed sessions
 
 ### Tests
-- [ ] Message storage tests (8 tests)
-- [ ] History retrieval tests (6 tests)
-- [ ] Pagination tests (4 tests)
-- [ ] **Total: 18 tests passing**
+- [x] Message storage tests (8 tests)
+- [x] History retrieval tests (6 tests)
+- [x] Pagination tests (4 tests)
+- [x] **Total: 18 tests passing**
 
 ---
 

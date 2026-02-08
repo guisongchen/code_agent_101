@@ -8,6 +8,7 @@ from backend.services.base import CRDService
 from backend.services.bot import BotService
 from backend.services.chat import ChatService
 from backend.services.ghost import GhostService
+from backend.services.message import MessageService
 from backend.services.model import ModelService
 from backend.services.shell import ShellService
 from backend.services.skill import SkillService
@@ -25,4 +26,5 @@ __all__ = [
     "TaskService",
     "ChatService",
     "AuthService",
+    "MessageService",
 ]

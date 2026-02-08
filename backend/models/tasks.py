@@ -3,7 +3,7 @@
 import enum
 import uuid
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -114,6 +114,14 @@ class Task(Base, TimestampMixin, SoftDeleteMixin):
         "Kind",
         back_populates="tasks",
         foreign_keys=[team_id],
+    )
+
+    messages: Mapped[List["Message"]] = relationship(  # type: ignore # noqa: F821
+        "Message",
+        back_populates="task",
+        foreign_keys="Message.task_id",
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     # Table constraints

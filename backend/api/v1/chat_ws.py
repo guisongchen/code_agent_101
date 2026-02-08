@@ -3,6 +3,7 @@
 Implements WebSocket endpoint for task-based chat with streaming support.
 
 Epic 14: WebSocket Chat Endpoint
+Epic 15: Message History Management
 """
 
 import asyncio
@@ -15,7 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database.engine import get_db_session
 from backend.schemas import ChatMessage, CurrentUser
-from backend.services import ChatService, TaskService
+from backend.services import ChatService, MessageService, TaskService
 from backend.websocket.manager import get_room_manager
 from backend.websocket.auth import authenticate_websocket
 
@@ -31,6 +32,7 @@ EVENT_CHAT_SEND = "chat:send"
 EVENT_CHAT_CANCEL = "chat:cancel"
 EVENT_TASK_JOIN = "task:join"
 EVENT_TASK_LEAVE = "task:leave"
+EVENT_HISTORY_REQUEST = "history:request"
 EVENT_PING = "ping"
 
 # Server -> Client events
@@ -43,6 +45,7 @@ EVENT_CHAT_TOOL_START = "chat:tool_start"
 EVENT_CHAT_TOOL_RESULT = "chat:tool_result"
 EVENT_CHAT_THINKING = "chat:thinking"
 EVENT_TASK_STATUS = "task:status"
+EVENT_HISTORY_SYNC = "history:sync"
 EVENT_PONG = "pong"
 
 
@@ -92,6 +95,7 @@ async def task_chat_websocket(
     room_manager = get_room_manager()
     chat_service = ChatService(session)
     task_service = TaskService(session)
+    message_service = MessageService(session)
 
     # Authenticate connection
     user = await authenticate_websocket(websocket, token)
@@ -144,6 +148,7 @@ async def task_chat_websocket(
                         websocket=websocket,
                         room_manager=room_manager,
                         chat_service=chat_service,
+                        message_service=message_service,
                         task=task,
                         message=message,
                         user=user,
@@ -175,6 +180,15 @@ async def task_chat_websocket(
 
             elif msg_type == EVENT_TASK_LEAVE:
                 break
+
+            elif msg_type == EVENT_HISTORY_REQUEST:
+                # Handle history request
+                await _handle_history_request(
+                    websocket=websocket,
+                    message_service=message_service,
+                    task_id=task_id,
+                    message=message,
+                )
 
             elif msg_type == EVENT_PING:
                 await websocket.send_json({"type": EVENT_PONG})
@@ -214,6 +228,7 @@ async def _handle_chat_send(
     websocket: WebSocket,
     room_manager: Any,
     chat_service: ChatService,
+    message_service: MessageService,
     task: Any,
     message: Dict[str, Any],
     user: CurrentUser,
@@ -221,11 +236,13 @@ async def _handle_chat_send(
     """Handle a chat:send event.
 
     Streams chat events from chat_shell to all connected clients.
+    Stores messages in database for history.
 
     Args:
         websocket: The WebSocket connection that sent the message.
         room_manager: The room manager for broadcasting.
         chat_service: The chat service for execution.
+        message_service: The message service for history storage.
         task: The task being chatted with.
         message: The chat message from client.
         user: The authenticated user.
@@ -247,13 +264,29 @@ async def _handle_chat_send(
         })
         return
 
+    # Store user message in database
+    await message_service.create_user_message(
+        task_id=task_id,
+        content=content,
+        thread_id=thread_id,
+        metadata={"user_id": user.id, "username": user.username},
+    )
+
     # Get bot name from task spec or use default
     # Task spec may contain bot reference
     bot_name = _get_bot_name_from_task(task)
     namespace = task.namespace or "default"
 
-    # Prepare messages
-    messages: List[Dict[str, str]] = [{"role": "user", "content": content}]
+    # Prepare messages from history for context
+    history_messages = await message_service.get_thread_messages(
+        task_id=task_id,
+        thread_id=thread_id,
+        limit=50,
+    )
+    messages: List[Dict[str, str]] = [
+        {"role": m.role.value, "content": m.content}
+        for m in history_messages
+    ]
 
     # Send start event to all clients
     await room_manager.broadcast_to_task(
@@ -263,6 +296,10 @@ async def _handle_chat_send(
             "timestamp": datetime.utcnow().isoformat(),
         },
     )
+
+    # Accumulate assistant response for storage
+    assistant_content_parts: List[str] = []
+    assistant_metadata: Dict[str, Any] = {"model": None, "tool_calls": []}
 
     try:
         # Stream chat events
@@ -278,6 +315,33 @@ async def _handle_chat_send(
             if ws_event:
                 await room_manager.broadcast_to_task(task_id, ws_event)
 
+            # Accumulate content for storage
+            event_type = event.get("type")
+            event_data = event.get("data", {})
+
+            if event_type == "content":
+                assistant_content_parts.append(event_data.get("text", ""))
+            elif event_type == "tool_call":
+                assistant_metadata["tool_calls"].append({
+                    "tool": event_data.get("tool"),
+                    "input": event_data.get("args"),
+                })
+            elif event_type == "thinking":
+                if "thinking" not in assistant_metadata:
+                    assistant_metadata["thinking"] = []
+                assistant_metadata["thinking"].append(event_data.get("text", ""))
+
+        # Store assistant response in database
+        assistant_content = "".join(assistant_content_parts)
+        if assistant_content:
+            await message_service.create_assistant_message(
+                task_id=task_id,
+                content=assistant_content,
+                thread_id=thread_id,
+                model=assistant_metadata.get("model"),
+                metadata=assistant_metadata,
+            )
+
         # Send completion event
         await room_manager.broadcast_to_task(
             task_id,
@@ -288,6 +352,17 @@ async def _handle_chat_send(
         )
 
     except asyncio.CancelledError:
+        # Store partial response before cancellation
+        assistant_content = "".join(assistant_content_parts)
+        if assistant_content:
+            await message_service.create_assistant_message(
+                task_id=task_id,
+                content=assistant_content + "\n[Cancelled]",
+                thread_id=thread_id,
+                model=assistant_metadata.get("model"),
+                metadata={**assistant_metadata, "cancelled": True},
+            )
+
         # Handle cancellation
         await room_manager.broadcast_to_task(
             task_id,
@@ -394,3 +469,87 @@ def _get_bot_name_from_task(task: Any) -> str:
 
     # Default bot name
     return "default"
+
+
+async def _handle_history_request(
+    websocket: WebSocket,
+    message_service: MessageService,
+    task_id: UUID,
+    message: Dict[str, Any],
+) -> None:
+    """Handle a history:request event.
+
+    Sends message history to the requesting client.
+
+    Args:
+        websocket: The WebSocket connection.
+        message_service: The message service for history retrieval.
+        task_id: The task ID.
+        message: The history request message.
+    """
+    from backend.schemas.message import MessageHistoryRequest
+
+    # Extract request parameters
+    thread_id = message.get("thread_id") or message.get("threadId") or "default"
+    limit = message.get("limit", 50)
+    offset = message.get("offset", 0)
+
+    # Validate limit
+    if not isinstance(limit, int) or limit < 1:
+        limit = 50
+    if limit > 1000:
+        limit = 1000
+
+    # Validate offset
+    if not isinstance(offset, int) or offset < 0:
+        offset = 0
+
+    # Build history request
+    request = MessageHistoryRequest(
+        thread_id=thread_id,
+        limit=limit,
+        offset=offset,
+    )
+
+    try:
+        # Get message history
+        history = await message_service.get_history(task_id, request)
+
+        # Send history sync event
+        await websocket.send_json({
+            "type": EVENT_HISTORY_SYNC,
+            "task_id": str(task_id),
+            "thread_id": thread_id,
+            "messages": [
+                {
+                    "id": str(m.id),
+                    "task_id": str(m.task_id),
+                    "role": m.role.value,
+                    "message_type": m.message_type.value,
+                    "content": m.content,
+                    "thread_id": m.thread_id,
+                    "sequence": m.sequence,
+                    "tokens_used": m.tokens_used,
+                    "prompt_tokens": m.prompt_tokens,
+                    "completion_tokens": m.completion_tokens,
+                    "model": m.model,
+                    "tool_name": m.tool_name,
+                    "tool_call_id": m.tool_call_id,
+                    "meta": m.meta,
+                    "generated_at": m.generated_at.isoformat() if m.generated_at else None,
+                    "created_at": m.created_at.isoformat() if m.created_at else None,
+                }
+                for m in history.messages
+            ],
+            "total": history.total,
+            "has_more": history.has_more,
+        })
+
+    except Exception as e:
+        await websocket.send_json({
+            "type": EVENT_CHAT_ERROR,
+            "data": {
+                "message": f"Failed to retrieve history: {str(e)}",
+                "error_code": "HISTORY_ERROR",
+            },
+        })
