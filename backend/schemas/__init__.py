@@ -33,6 +33,18 @@ from backend.schemas.message import (
     MessageHistorySyncEvent,
     MessageResponse,
 )
+from backend.schemas.session import (
+    SessionCreateRequest,
+    SessionListRequest,
+    SessionListResponse,
+    SessionMetrics,
+    SessionRecoveryRequest,
+    SessionRecoveryResponse,
+    SessionResponse,
+    SessionUpdateRequest,
+    WebSocketSessionEvent,
+    WebSocketSessionRecoveryEvent,
+)
 from backend.schemas.task import TaskCreateRequest, TaskResponse, TaskStatusUpdate
 from backend.schemas.team import TeamCRD, TeamCreateRequest, TeamResponse, TeamSpec
 from backend.schemas.websocket import (
@@ -100,6 +112,17 @@ __all__ = [
     "MessageHistoryResponse",
     "MessageHistoryRequestEvent",
     "MessageHistorySyncEvent",
+    # Session schemas
+    "SessionCreateRequest",
+    "SessionResponse",
+    "SessionListRequest",
+    "SessionListResponse",
+    "SessionUpdateRequest",
+    "SessionRecoveryRequest",
+    "SessionRecoveryResponse",
+    "SessionMetrics",
+    "WebSocketSessionEvent",
+    "WebSocketSessionRecoveryEvent",
     # Chat schemas
     "ChatMessage",
     "ChatRequest",

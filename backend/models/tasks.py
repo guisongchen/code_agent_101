@@ -124,6 +124,14 @@ class Task(Base, TimestampMixin, SoftDeleteMixin):
         lazy="selectin",
     )
 
+    sessions: Mapped[List["ChatSession"]] = relationship(  # type: ignore # noqa: F821
+        "ChatSession",
+        back_populates="task",
+        foreign_keys="ChatSession.task_id",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
     # Table constraints
     __table_args__ = (
         Index("ix_tasks_status_namespace", "status", "namespace"),

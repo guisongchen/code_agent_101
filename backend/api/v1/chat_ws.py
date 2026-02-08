@@ -4,6 +4,7 @@ Implements WebSocket endpoint for task-based chat with streaming support.
 
 Epic 14: WebSocket Chat Endpoint
 Epic 15: Message History Management
+Epic 16: Chat Session State Management
 """
 
 import asyncio
@@ -15,9 +16,10 @@ from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect, s
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database.engine import get_db_session
-from backend.schemas import ChatMessage, CurrentUser
-from backend.services import ChatService, MessageService, TaskService
+from backend.schemas import ChatMessage, CurrentUser, SessionCreateRequest
+from backend.services import ChatService, MessageService, SessionService, TaskService
 from backend.websocket.manager import get_room_manager
+from backend.websocket.session_manager import get_session_manager
 from backend.websocket.auth import authenticate_websocket
 
 router = APIRouter()
@@ -33,6 +35,7 @@ EVENT_CHAT_CANCEL = "chat:cancel"
 EVENT_TASK_JOIN = "task:join"
 EVENT_TASK_LEAVE = "task:leave"
 EVENT_HISTORY_REQUEST = "history:request"
+EVENT_SESSION_RECOVER = "session:recover"
 EVENT_PING = "ping"
 
 # Server -> Client events
@@ -46,6 +49,8 @@ EVENT_CHAT_TOOL_RESULT = "chat:tool_result"
 EVENT_CHAT_THINKING = "chat:thinking"
 EVENT_TASK_STATUS = "task:status"
 EVENT_HISTORY_SYNC = "history:sync"
+EVENT_SESSION_STATE = "session:state"
+EVENT_SESSION_RECOVERED = "session:recovered"
 EVENT_PONG = "pong"
 
 
@@ -64,7 +69,7 @@ async def task_chat_websocket(
     """WebSocket endpoint for task-based chat.
 
     Provides real-time bidirectional chat communication for tasks.
-    Supports streaming AI responses and multi-client rooms.
+    Supports streaming AI responses, multi-client rooms, and session management.
 
     Args:
         websocket: The WebSocket connection.
@@ -78,6 +83,7 @@ async def task_chat_websocket(
         - chat:cancel - Cancel ongoing generation
         - task:join - Join task room (implicit on connect)
         - task:leave - Leave task room
+        - session:recover - Recover a previous session
         - ping - Keep-alive ping
 
         Server -> Client:
@@ -90,12 +96,16 @@ async def task_chat_websocket(
         - chat:tool_result - Tool execution completed
         - chat:thinking - Agent thinking/thought process
         - task:status - Task status update
+        - session:state - Session state update
+        - session:recovered - Session recovery result
         - pong - Keep-alive response
     """
     room_manager = get_room_manager()
+    session_manager = get_session_manager()
     chat_service = ChatService(session)
     task_service = TaskService(session)
     message_service = MessageService(session)
+    session_service = SessionService(session)
 
     # Authenticate connection
     user = await authenticate_websocket(websocket, token)
@@ -112,11 +122,59 @@ async def task_chat_websocket(
     # Accept connection
     await websocket.accept()
 
+    # Create or recover session
+    websocket_id = str(id(websocket))
+    chat_session = None
+    session_id = None
+
+    try:
+        # Create new session
+        session_request = SessionCreateRequest(
+            user_id=user.id,
+            task_id=task_id,
+            thread_id=str(task_id),
+            meta={"client_type": "websocket", "connected_at": datetime.utcnow().isoformat()},
+        )
+        chat_session = await session_service.create(session_request)
+        await session.commit()
+        session_id = chat_session.session_id
+
+        # Track in memory
+        await session_manager.create_session(
+            session_id=session_id,
+            user_id=user.id,
+            task_id=task_id,
+            thread_id=str(task_id),
+        )
+        await session_manager.associate_websocket(session_id, websocket_id)
+
+        # Send session state to client
+        await websocket.send_json({
+            "type": EVENT_SESSION_STATE,
+            "session_id": session_id,
+            "status": "active",
+            "connection_count": 1,
+            "recovery_token": chat_session.recovery_token,
+            "expires_at": chat_session.expires_at.isoformat(),
+        })
+
+    except ValueError as e:
+        # Session limit reached
+        await websocket.send_json({
+            "type": EVENT_CHAT_ERROR,
+            "data": {
+                "message": str(e),
+                "error_code": "SESSION_LIMIT_REACHED",
+            },
+        })
+        await websocket.close()
+        return
+
     # Join task room
     await room_manager.join_task(
         task_id,
         websocket,
-        client_info={"user_id": user.id, "username": user.username},
+        client_info={"user_id": user.id, "username": user.username, "session_id": session_id},
     )
 
     # Track active generation for cancellation
@@ -190,6 +248,16 @@ async def task_chat_websocket(
                     message=message,
                 )
 
+            elif msg_type == EVENT_SESSION_RECOVER:
+                # Handle session recovery
+                await _handle_session_recover(
+                    websocket=websocket,
+                    session_service=session_service,
+                    session_manager=session_manager,
+                    current_session_id=session_id,
+                    message=message,
+                )
+
             elif msg_type == EVENT_PING:
                 await websocket.send_json({"type": EVENT_PONG})
 
@@ -219,6 +287,12 @@ async def task_chat_websocket(
         # Clean up
         if active_generation and not active_generation.done():
             active_generation.cancel()
+
+        # Update session connection count
+        if session_id:
+            await session_manager.disassociate_websocket(websocket_id)
+            await session_service.decrement_connections(session_id)
+            await session.commit()
 
         await room_manager.leave_task(task_id, websocket)
         await websocket.close()
@@ -552,4 +626,79 @@ async def _handle_history_request(
                 "message": f"Failed to retrieve history: {str(e)}",
                 "error_code": "HISTORY_ERROR",
             },
+        })
+
+
+async def _handle_session_recover(
+    websocket: WebSocket,
+    session_service: SessionService,
+    session_manager: Any,
+    current_session_id: Optional[str],
+    message: Dict[str, Any],
+) -> None:
+    """Handle a session:recover event.
+
+    Attempts to recover a previous session and migrate the WebSocket
+    connection to the recovered session.
+
+    Args:
+        websocket: The WebSocket connection.
+        session_service: The session service.
+        session_manager: The in-memory session manager.
+        current_session_id: The current session ID (if any).
+        message: The recovery request message.
+    """
+    from backend.schemas.session import SessionRecoveryRequest
+
+    recovery_token = message.get("recovery_token") or message.get("recoveryToken")
+    if not recovery_token:
+        await websocket.send_json({
+            "type": EVENT_SESSION_RECOVERED,
+            "success": False,
+            "message": "Recovery token is required",
+        })
+        return
+
+    request = SessionRecoveryRequest(
+        recovery_token=recovery_token,
+        session_id=message.get("session_id") or message.get("sessionId"),
+        meta=message.get("meta"),
+    )
+
+    try:
+        result = await session_service.recover_session(request)
+
+        if result.success and result.session:
+            # Update in-memory session tracking
+            if current_session_id:
+                await session_manager.close_session(current_session_id)
+
+            await session_manager.create_session(
+                session_id=result.session.session_id,
+                user_id=result.session.user_id,
+                task_id=result.session.task_id,
+                thread_id=result.session.thread_id,
+            )
+
+            await websocket.send_json({
+                "type": EVENT_SESSION_RECOVERED,
+                "success": True,
+                "session_id": result.session.session_id,
+                "previous_session_id": current_session_id,
+                "recovery_token": result.session.recovery_token,
+                "expires_at": result.session.expires_at.isoformat(),
+                "message": result.message,
+            })
+        else:
+            await websocket.send_json({
+                "type": EVENT_SESSION_RECOVERED,
+                "success": False,
+                "message": result.message,
+            })
+
+    except Exception as e:
+        await websocket.send_json({
+            "type": EVENT_SESSION_RECOVERED,
+            "success": False,
+            "message": f"Recovery failed: {str(e)}",
         })

@@ -2,6 +2,7 @@
 
 from backend.models.kinds import Kind, KindType
 from backend.models.messages import Message, MessageRole, MessageType
+from backend.models.session import ChatSession, SessionStatus
 from backend.models.tasks import Task, TaskStatus
 from backend.models.user import User, UserRole
 
@@ -15,4 +16,6 @@ __all__ = [
     "Message",
     "MessageRole",
     "MessageType",
+    "ChatSession",
+    "SessionStatus",
 ]
