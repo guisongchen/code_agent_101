@@ -53,7 +53,9 @@ def create_app() -> FastAPI:
     app.include_router(api_router, prefix="/api")
 
     # Mount static files for UI
-    app.mount("/ui", StaticFiles(directory="frontend", html=True), name="ui")
+    import os
+    frontend_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+    app.mount("/ui", StaticFiles(directory=frontend_dir, html=True), name="ui")
 
     @app.get("/health")
     async def health_check() -> dict:
