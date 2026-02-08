@@ -29,20 +29,20 @@ This phase implements the foundational Backend CRD (Custom Resource Definition) 
 **Goal**: Define Pydantic v2 schemas for all CRD types with proper validation
 
 ### User Stories
-- [ ] Create base `Metadata` and `ResourceRef` schemas
-- [ ] Implement `GhostSpec` and `GhostCRD` schemas with field aliases
-- [ ] Implement `ModelSpec` and `ModelCRD` schemas for AI model configuration
-- [ ] Implement `ShellSpec` and `ShellCRD` schemas for runtime environments
-- [ ] Implement `BotSpec` and `BotCRD` schemas with reference validation
-- [ ] Implement `TeamSpec` and `TeamCRD` schemas for multi-bot teams
-- [ ] Create response schemas with `from_orm` support
-- [ ] Add custom validators for resource references
+- [x] Create base `Metadata` and `ResourceRef` schemas
+- [x] Implement `GhostSpec` and `GhostCRD` schemas with field aliases
+- [x] Implement `ModelSpec` and `ModelCRD` schemas for AI model configuration
+- [x] Implement `ShellSpec` and `ShellCRD` schemas for runtime environments
+- [x] Implement `BotSpec` and `BotCRD` schemas with reference validation
+- [x] Implement `TeamSpec` and `TeamCRD` schemas for multi-bot teams
+- [x] Create response schemas with `from_orm` support
+- [x] Add custom validators for resource references
 
 ### Tests
-- [ ] Schema validation tests (15 tests)
-- [ ] Field alias tests (8 tests)
-- [ ] Reference validation tests (6 tests)
-- [ ] **Total: 29 tests passing**
+- [x] Schema validation tests (76 tests)
+- [x] Field alias tests (included in schema tests)
+- [x] Reference validation tests (included in schema tests)
+- [x] **Total: 76 tests passing**
 
 ---
 
