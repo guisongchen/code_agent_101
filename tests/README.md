@@ -21,15 +21,23 @@ tests/
 │   │   ├── models/
 │   │   │   ├── test_kinds.py      # Kind model tests (6 tests)
 │   │   │   └── test_tasks.py      # Task model tests (4 tests)
-│   │   └── schemas/               # Pydantic schema tests (Epic 8)
-│   │       ├── test_base_schemas.py # Base schemas (10 tests)
-│   │       ├── test_ghost.py      # Ghost schemas (5 tests)
-│   │       ├── test_model.py      # Model schemas (5 tests)
-│   │       ├── test_shell.py      # Shell schemas (5 tests)
-│   │       ├── test_bot.py        # Bot schemas with ref validation (6 tests)
-│   │       ├── test_team.py       # Team schemas (5 tests)
-│   │       ├── test_skill.py      # Skill schemas (5 tests)
-│   │       └── test_task.py       # Task schemas (5 tests)
+│   │   ├── schemas/               # Pydantic schema tests (Epic 8)
+│   │   │   ├── test_base_schemas.py # Base schemas (10 tests)
+│   │   │   ├── test_ghost.py      # Ghost schemas (5 tests)
+│   │   │   ├── test_model.py      # Model schemas (5 tests)
+│   │   │   ├── test_shell.py      # Shell schemas (5 tests)
+│   │   │   ├── test_bot.py        # Bot schemas with ref validation (6 tests)
+│   │   │   ├── test_team.py       # Team schemas (5 tests)
+│   │   │   ├── test_skill.py      # Skill schemas (5 tests)
+│   │   │   └── test_task.py       # Task schemas (5 tests)
+│   │   └── services/              # CRUD service tests (Epic 9)
+│   │       ├── test_ghost_service.py   # Ghost service (6 tests)
+│   │       ├── test_model_service.py   # Model service (6 tests)
+│   │       ├── test_shell_service.py   # Shell service (6 tests)
+│   │       ├── test_bot_service.py     # Bot service with ref validation (8 tests)
+│   │       ├── test_team_service.py    # Team service with member validation (7 tests)
+│   │       ├── test_skill_service.py   # Skill service (6 tests)
+│   │       └── test_task_service.py    # Task service with lifecycle (10 tests)
 │   └── chat_shell/                # Chat shell tests
 │       ├── agent/                 # Agent system tests (Epic 1)
 │       ├── api/                   # API tests (Epic 4)
@@ -50,10 +58,10 @@ tests/
 
 | Category | Count |
 |----------|-------|
-| **Total** | 441 tests |
-| **Backend** | 94 tests |
+| **Total** | 489 tests |
+| **Backend** | 142 tests |
 | **Chat Shell** | 324+ tests |
-| **Unit** | 410 tests |
+| **Unit** | 458 tests |
 | **Integration** | 8 tests |
 
 ### Backend Test Breakdown
@@ -62,9 +70,10 @@ tests/
 |-----------|-------|
 | **Models** | 10 tests (Epic 7) |
 | **Schemas** | 76 tests (Epic 8) |
+| **Services** | 48 tests (Epic 9) |
 | **Migrations** | 5 tests |
 | **Database Connection** | 3 tests |
-| **Total Backend** | 94 tests |
+| **Total Backend** | 142 tests |
 
 ## pytest Markers
 
