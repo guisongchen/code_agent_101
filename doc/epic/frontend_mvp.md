@@ -114,23 +114,26 @@ This phase implements the Frontend MVP for the Wegent platform using Next.js 15 
 **Goal**: Implement WebSocket-based chat UI for task communication
 
 ### User Stories
-- [ ] Create chat message component with role-based styling
-- [ ] Implement chat input component with send functionality
-- [ ] Create chat history view with infinite scroll
-- [ ] Implement WebSocket connection management
-- [ ] Add message streaming display with typing indicators
-- [ ] Create chat room selector for task switching
-- [ ] Implement message history synchronization
-- [ ] Add support for tool call display in chat
-- [ ] Create chat session recovery on reconnection
-- [ ] Implement chat cancellation button
+- [x] Create chat message component with role-based styling
+- [x] Implement chat input component with send functionality
+- [x] Create chat history view with infinite scroll
+- [x] Implement WebSocket connection management
+- [x] Add message streaming display with typing indicators
+- [x] Create chat room selector for task switching
+- [x] Implement message history synchronization
+- [x] Add support for tool call display in chat
+- [x] Create chat session recovery on reconnection
+- [x] Implement chat cancellation button
 
 ### Tests
-- [ ] Chat message component tests (3 tests)
-- [ ] Chat input component tests (2 tests)
-- [ ] WebSocket integration tests (4 tests)
-- [ ] Message streaming tests (3 tests)
-- [ ] **Total: 12 tests passing**
+- [x] useChat hook tests (10 tests)
+- [x] ChatMessage component tests (9 tests)
+- [x] ChatInput component tests (6 tests)
+- [x] ChatContainer component tests (8 tests)
+- [x] Chat page tests (5 tests)
+- [x] Chat navigation tests (2 tests)
+- [x] Chat components index tests (4 tests)
+- [x] **Total: 44 tests passing**
 
 ---
 
