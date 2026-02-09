@@ -32,6 +32,7 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import { useAuth, ProtectedRoute } from "@/context/auth-context";
+import { BreadcrumbNav } from "@/components/layout/BreadcrumbNav";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -196,6 +197,7 @@ export default function DashboardLayout({
               minHeight: 280,
             }}
           >
+            <BreadcrumbNav />
             {children}
           </Content>
         </Layout>
