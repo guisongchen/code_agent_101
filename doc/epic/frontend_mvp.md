@@ -60,24 +60,27 @@ This phase implements the Frontend MVP for the Wegent platform using Next.js 15 
 **Goal**: Implement CRUD interfaces for all CRD resources (Ghost, Model, Shell, Bot, Team, Skill)
 
 ### User Stories
-- [ ] Create reusable resource list component with table view
-- [ ] Create reusable resource form component for create/edit
-- [ ] Implement Ghost management page (list, create, edit, delete)
-- [ ] Implement Model management page (list, create, edit, delete)
-- [ ] Implement Shell management page (list, create, edit, delete)
-- [ ] Implement Bot management page (list, create, edit, delete)
-- [ ] Implement Team management page (list, create, edit, delete)
-- [ ] Implement Skill management page (list, create, edit, delete)
-- [ ] Add namespace filter for resource isolation
-- [ ] Implement resource deletion confirmation dialogs
-- [ ] Add YAML spec editor with syntax highlighting
-- [ ] Create resource detail view with metadata display
+- [x] Create reusable resource list component with table view
+- [x] Create reusable resource form component for create/edit
+- [x] Implement Ghost management page (list, create, edit, delete)
+- [x] Implement Model management page (list, create, edit, delete)
+- [x] Implement Shell management page (list, create, edit, delete)
+- [x] Implement Bot management page (list, create, edit, delete)
+- [x] Implement Team management page (list, create, edit, delete)
+- [x] Implement Skill management page (list, create, edit, delete)
+- [x] Add namespace filter for resource isolation
+- [x] Implement resource deletion confirmation dialogs
+- [x] Add YAML spec editor with syntax highlighting
+- [x] Create resource detail view with metadata display
 
 ### Tests
-- [ ] Resource list component tests (4 tests)
-- [ ] Resource form component tests (4 tests)
-- [ ] CRUD operation tests (12 tests)
-- [ ] **Total: 20 tests passing**
+- [x] Resource list component tests (8 tests)
+- [x] Resource form component tests (7 tests)
+- [x] useResources hook tests (5 tests)
+- [x] Resource pages tests (18 tests)
+- [x] Resource API services tests (24 tests)
+- [x] Resource components index tests (3 tests)
+- [x] **Total: 65 tests passing**
 
 ---
 
