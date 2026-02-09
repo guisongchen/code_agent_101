@@ -28,6 +28,7 @@ import {
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
+  CheckSquareOutlined,
 } from "@ant-design/icons";
 import { useAuth, ProtectedRoute } from "@/context/auth-context";
 
@@ -43,6 +44,11 @@ const navigationItems = [
     key: "/",
     icon: <DashboardOutlined />,
     label: <Link href="/">Dashboard</Link>,
+  },
+  {
+    key: "/tasks",
+    icon: <CheckSquareOutlined />,
+    label: <Link href="/tasks">Tasks</Link>,
   },
   {
     key: "/ghosts",
