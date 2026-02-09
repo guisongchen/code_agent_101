@@ -19,6 +19,7 @@ import {
   LoginRequest,
   RegisterRequest,
   UserResponse,
+  Token,
 } from "@/types";
 import {
   login as loginApi,
@@ -31,6 +32,18 @@ import {
   getStoredUser,
   getToken,
 } from "@/services/auth";
+
+// =============================================================================
+// Token Expiration Check
+// =============================================================================
+
+function isTokenExpired(token: Token): boolean {
+  // Calculate expiration time (issued at + expires_in)
+  // We consider token expired 60 seconds before actual expiry
+  const bufferSeconds = 60;
+  const expiryTime = Date.now() + (token.expiresIn * 1000) - (bufferSeconds * 1000);
+  return Date.now() >= expiryTime;
+}
 
 // =============================================================================
 // Context Types
@@ -80,13 +93,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const user = getStoredUser();
 
       if (token && user) {
-        setState({
-          user,
-          token,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-        });
+        // Check if token is expired
+        if (isTokenExpired(token)) {
+          // Token expired, clear storage
+          removeToken();
+          removeUser();
+          setState({
+            ...defaultAuthState,
+            isLoading: false,
+          });
+        } else {
+          setState({
+            user,
+            token,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+        }
       } else {
         setState({
           ...defaultAuthState,
@@ -97,6 +121,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     initAuth();
   }, []);
+
+  // Token refresh interval
+  useEffect(() => {
+    if (!state.isAuthenticated || !state.token) return;
+
+    // Check token expiration every minute
+    const interval = setInterval(() => {
+      if (state.token && isTokenExpired(state.token)) {
+        // Token expired, logout
+        logout();
+      }
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [state.isAuthenticated, state.token]);
 
   // Login function
   const login = useCallback(async (credentials: LoginRequest) => {

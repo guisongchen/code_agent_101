@@ -18,6 +18,7 @@ import {
   Divider,
 } from "antd";
 import { UserOutlined, LockOutlined, LoginOutlined } from "@ant-design/icons";
+import Link from "next/link";
 import { useAuth } from "@/context/auth-context";
 
 const { Title, Text } = Typography;
@@ -129,6 +130,10 @@ export default function LoginPage() {
         <Divider />
 
         <Space direction="vertical" style={{ width: "100%", textAlign: "center" }}>
+          <Text type="secondary">
+            Don&apos;t have an account?{" "}
+            <Link href="/register">Create one</Link>
+          </Text>
           <Text type="secondary" style={{ fontSize: 12 }}>
             Default credentials: admin / admin
           </Text>
