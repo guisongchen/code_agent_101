@@ -16,6 +16,8 @@ The test suite is organized in a unified structure under the `tests/` directory,
 tests/
 ├── conftest.py                    # Shared fixtures and pytest configuration
 ├── README.md                      # This file
+├── frontend/                      # Frontend tests (Epic 19)
+│   └── project-setup.test.ts      # Project setup tests (34 tests)
 ├── unit/                          # Unit tests - fast, isolated
 │   ├── crd_backend/               # Backend CRD tests (renamed to avoid import conflict)
 │   │   ├── models/
@@ -61,9 +63,10 @@ tests/
 
 | Category | Count |
 |----------|-------|
-| **Total** | 560 tests |
+| **Total** | 594 tests |
 | **Backend** | 213 tests |
 | **Chat Shell** | 324+ tests |
+| **Frontend** | 34 tests |
 | **Unit** | 529 tests |
 | **Integration** | 8 tests |
 
@@ -79,6 +82,32 @@ tests/
 | **Migrations** | 5 tests |
 | **Database Connection** | 3 tests |
 | **Total Backend** | 213 tests |
+| **Total Frontend** | 34 tests |
+
+## Frontend Tests
+
+Frontend tests are located in `tests/frontend/` and use Jest with TypeScript.
+
+### Running Frontend Tests
+
+```bash
+cd frontend/
+npm test
+```
+
+### Frontend Test Coverage
+
+| Test Suite | Count |
+|------------|-------|
+| Project Setup Verification | 17 tests |
+| TypeScript Configuration | 2 tests |
+| Tailwind Configuration | 2 tests |
+| Axios Setup | 3 tests |
+| Environment Variables | 3 tests |
+| Dependencies | 2 tests |
+| TypeScript Types | 3 tests |
+| Auth Context | 2 tests |
+| **Total** | **34 tests** |
 
 ## pytest Markers
 
@@ -116,6 +145,7 @@ Markers are used to categorize tests for selective execution.
 | `@pytest.mark.epic_9` | CRUD Service Layer |
 | `@pytest.mark.epic_10` | RESTful API Endpoints |
 | `@pytest.mark.epic_11` | Authentication & Authorization |
+| `@pytest.mark.epic_19` | Frontend Project Setup |
 
 ## Usage Examples
 
