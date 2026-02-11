@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ConfigProvider } from "antd";
-import { AuthProvider } from "@/context/auth-context";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,10 +15,9 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Wegent - AI Agent Platform",
-  description: "Kubernetes-style AI agent management platform",
+  description: "Personal AI agent management",
 };
 
-// Ant Design theme configuration
 const antdTheme = {
   token: {
     colorPrimary: "#1890ff",
@@ -41,7 +39,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ConfigProvider theme={antdTheme}>
-          <AuthProvider>{children}</AuthProvider>
+          {children}
         </ConfigProvider>
       </body>
     </html>

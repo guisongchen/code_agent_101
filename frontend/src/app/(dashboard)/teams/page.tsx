@@ -1,166 +1,203 @@
-/** Teams Management Page
+/** Teams Page
  *
- * CRUD interface for Team resources
+ * Simple team management with inline CRUD
  */
 
 "use client";
 
-import React, { useState } from "react";
-import { Typography, Tag } from "antd";
-import type { ColumnsType } from "antd/es/table";
-import { ResourceList, ResourceForm, ResourceFormData } from "@/components/resources";
-import { useResources } from "@/hooks/useResources";
-import { teamApi } from "@/services/resources";
-import type { TeamResponse } from "@/types";
+import React, { useEffect, useState } from "react";
+import {
+  Table,
+  Button,
+  Space,
+  Typography,
+  Modal,
+  Form,
+  Input,
+  Select,
+  message,
+  Popconfirm,
+  Tag,
+} from "antd";
+import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import type { Team, TeamCreateRequest, Agent } from "@/types";
+import { listTeams, createTeam, updateTeam, deleteTeam } from "@/services/teams";
+import { listAgents } from "@/services/agents";
 
-const { Text } = Typography;
-
-interface TeamListItem {
-  id: string;
-  name: string;
-  namespace: string;
-  members: number;
-  strategy: string;
-  description: string;
-}
+const { Title } = Typography;
+const { TextArea } = Input;
+const { Option } = Select;
 
 export default function TeamsPage() {
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingTeam, setEditingTeam] = useState<TeamResponse | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [form] = Form.useForm();
 
-  const {
-    resources,
-    loading,
-    total,
-    currentNamespace,
-    namespaces,
-    fetchResources,
-    createResource,
-    updateResource,
-    deleteResource,
-    setCurrentNamespace,
-  } = useResources<TeamResponse>({
-    listFn: teamApi.list,
-    createFn: teamApi.create,
-    updateFn: teamApi.update,
-    deleteFn: teamApi.delete,
-  });
+  async function loadData() {
+    try {
+      setLoading(true);
+      const [teamsData, agentsData] = await Promise.all([
+        listTeams(),
+        listAgents(),
+      ]);
+      setTeams(teamsData);
+      setAgents(agentsData);
+    } catch (error) {
+      console.error("Failed to load data:", error);
+      message.error("Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  const teamListItems: TeamListItem[] = resources.map((team) => ({
-    id: team.id,
-    name: team.metadata.name,
-    namespace: team.metadata.namespace,
-    members: team.spec.members?.length || 0,
-    strategy: team.spec.coordinationStrategy || "-",
-    description: team.spec.description || "-",
-  }));
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const columns: ColumnsType<TeamListItem> = [
+  function handleCreate() {
+    setEditingTeam(null);
+    form.resetFields();
+    setModalVisible(true);
+  }
+
+  function handleEdit(team: Team) {
+    setEditingTeam(team);
+    form.setFieldsValue({
+      name: team.name,
+      description: team.description,
+      agentIds: team.agentIds,
+    });
+    setModalVisible(true);
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      await deleteTeam(id);
+      message.success("Team deleted");
+      loadData();
+    } catch (error) {
+      console.error("Failed to delete team:", error);
+      message.error("Failed to delete team");
+    }
+  }
+
+  async function handleSubmit(values: TeamCreateRequest) {
+    try {
+      if (editingTeam) {
+        await updateTeam(editingTeam.id, values);
+        message.success("Team updated");
+      } else {
+        await createTeam(values);
+        message.success("Team created");
+      }
+      setModalVisible(false);
+      loadData();
+    } catch (error) {
+      console.error("Failed to save team:", error);
+      message.error("Failed to save team");
+    }
+  }
+
+  const columns = [
     {
       title: "Name",
       dataIndex: "name",
       key: "name",
-      render: (text) => <Text strong>{text}</Text>,
     },
     {
-      title: "Namespace",
-      dataIndex: "namespace",
-      key: "namespace",
-      render: (text) => <Tag>{text}</Tag>,
+      title: "Agents",
+      key: "agents",
+      render: (_: unknown, team: Team) => (
+        <Space size="small" wrap>
+          {team.agentIds.map((id) => {
+            const agent = agents.find((a) => a.id === id);
+            return (
+              <Tag key={id}>{agent?.name || id}</Tag>
+            );
+          })}
+        </Space>
+      ),
     },
     {
-      title: "Members",
-      dataIndex: "members",
-      key: "members",
-      render: (count) => <Tag color="blue">{count} bots</Tag>,
+      title: "Created",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => new Date(date).toLocaleDateString(),
     },
     {
-      title: "Strategy",
-      dataIndex: "strategy",
-      key: "strategy",
-      render: (text) => <Tag color="green">{text}</Tag>,
-    },
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-      ellipsis: true,
+      title: "Actions",
+      key: "actions",
+      render: (_: unknown, team: Team) => (
+        <Space>
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(team)} />
+          <Popconfirm
+            title="Delete team?"
+            onConfirm={() => handleDelete(team.id)}
+          >
+            <Button danger icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Space>
+      ),
     },
   ];
 
-  const handleCreate = () => {
-    setEditingTeam(null);
-    setFormOpen(true);
-  };
-
-  const handleEdit = (item: TeamListItem) => {
-    const team = resources.find((t) => t.metadata.name === item.name);
-    if (team) {
-      setEditingTeam(team);
-      setFormOpen(true);
-    }
-  };
-
-  const handleDelete = async (item: TeamListItem) => {
-    await deleteResource(item.name, item.namespace);
-  };
-
-  const handleSubmit = async (values: ResourceFormData) => {
-    if (editingTeam) {
-      await updateResource(
-        editingTeam.metadata.name,
-        {
-          metadata: values.metadata,
-          spec: values.spec,
-        },
-        editingTeam.metadata.namespace
-      );
-    } else {
-      await createResource({
-        metadata: values.metadata,
-        spec: values.spec,
-      });
-    }
-    setFormOpen(false);
-    await fetchResources();
-  };
-
-  const formInitialData: ResourceFormData | undefined = editingTeam
-    ? {
-        metadata: {
-          name: editingTeam.metadata.name,
-          namespace: editingTeam.metadata.namespace,
-          description: editingTeam.spec.description,
-        },
-        spec: editingTeam.spec,
-      }
-    : undefined;
-
   return (
     <div>
-      <ResourceList<TeamListItem>
-        title="Teams"
-        resources={teamListItems}
-        loading={loading}
-        total={total}
-        currentNamespace={currentNamespace}
-        namespaces={namespaces}
+      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between" }}>
+        <Title level={2}>Teams</Title>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+          New Team
+        </Button>
+      </div>
+
+      <Table
+        dataSource={teams}
         columns={columns}
-        onCreate={handleCreate}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onNamespaceChange={setCurrentNamespace}
-        createButtonText="Create Team"
+        rowKey="id"
+        loading={loading}
       />
 
-      <ResourceForm
-        title={editingTeam ? "Edit Team" : "Create Team"}
-        open={formOpen}
-        resource={formInitialData}
-        namespaces={namespaces}
-        onSubmit={handleSubmit}
-        onCancel={() => setFormOpen(false)}
-      />
+      <Modal
+        title={editingTeam ? "Edit Team" : "New Team"}
+        open={modalVisible}
+        onOk={() => form.submit()}
+        onCancel={() => setModalVisible(false)}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+        >
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true, message: "Please enter a name" }]}
+          >
+            <Input placeholder="my-team" />
+          </Form.Item>
+
+          <Form.Item name="description" label="Description">
+            <TextArea rows={2} placeholder="Optional description" />
+          </Form.Item>
+
+          <Form.Item
+            name="agentIds"
+            label="Agents"
+            rules={[{ required: true, message: "Please select at least one agent" }]}
+          >
+            <Select mode="multiple" placeholder="Select agents">
+              {agents.map((agent) => (
+                <Option key={agent.id} value={agent.id}>
+                  {agent.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }

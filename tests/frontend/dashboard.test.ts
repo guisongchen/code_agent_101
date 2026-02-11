@@ -1,6 +1,6 @@
 /** Dashboard and Navigation Tests
  *
- * Tests for Epic 24: Dashboard and Navigation
+ * Tests for Simplified Frontend - Dashboard and Navigation
  */
 
 import { describe, it, expect } from "@jest/globals";
@@ -51,28 +51,24 @@ describe("Dashboard Page", () => {
     expect(content).toContain("export default function DashboardPage");
   });
 
-  it("should have resource statistics cards", () => {
+  it("should have agent statistics card", () => {
     const pagePath = path.join(
       frontendRoot,
       "src/app/(dashboard)/page.tsx"
     );
     const content = readFile(pagePath);
-    expect(content).toContain("resourceCards");
-    expect(content).toContain("Statistic");
+    expect(content).toContain("Agents");
+    expect(content).toContain("RobotOutlined");
   });
 
-  it("should display all resource types", () => {
+  it("should have task statistics card", () => {
     const pagePath = path.join(
       frontendRoot,
       "src/app/(dashboard)/page.tsx"
     );
     const content = readFile(pagePath);
-    expect(content).toContain("Ghosts");
-    expect(content).toContain("Models");
-    expect(content).toContain("Shells");
-    expect(content).toContain("Bots");
-    expect(content).toContain("Teams");
-    expect(content).toContain("Skills");
+    expect(content).toContain("Tasks");
+    expect(content).toContain("CheckSquareOutlined");
   });
 
   it("should have quick action buttons", () => {
@@ -81,90 +77,36 @@ describe("Dashboard Page", () => {
       "src/app/(dashboard)/page.tsx"
     );
     const content = readFile(pagePath);
-    expect(content).toContain("quickActions");
-    expect(content).toContain("Create Task");
+    expect(content).toContain("New Agent");
+    expect(content).toContain("New Task");
     expect(content).toContain("Open Chat");
   });
 
-  it("should have recent activity section", () => {
+  it("should have recent tasks section", () => {
     const pagePath = path.join(
       frontendRoot,
       "src/app/(dashboard)/page.tsx"
     );
     const content = readFile(pagePath);
     expect(content).toContain("Recent Tasks");
-    expect(content).toContain("Activity Timeline");
   });
 
-  it("should use useResources hook", () => {
+  it("should use listAgents service", () => {
     const pagePath = path.join(
       frontendRoot,
       "src/app/(dashboard)/page.tsx"
     );
     const content = readFile(pagePath);
-    expect(content).toContain("useResources");
+    expect(content).toContain("listAgents");
   });
 
-  it("should use useTasks hook", () => {
+  it("should use listTasks service", () => {
     const pagePath = path.join(
       frontendRoot,
       "src/app/(dashboard)/page.tsx"
     );
     const content = readFile(pagePath);
-    expect(content).toContain("useTasks");
-  });
-});
-
-// =============================================================================
-// Test Suite: Breadcrumb Navigation
-// =============================================================================
-
-describe("Breadcrumb Navigation", () => {
-  it("should have BreadcrumbNav component file", () => {
-    const componentPath = path.join(
-      frontendRoot,
-      "src/components/layout/BreadcrumbNav.tsx"
-    );
-    expect(fileExists(componentPath)).toBe(true);
-  });
-
-  it("should export BreadcrumbNav component", () => {
-    const componentPath = path.join(
-      frontendRoot,
-      "src/components/layout/BreadcrumbNav.tsx"
-    );
-    const content = readFile(componentPath);
-    expect(content).toContain("export function BreadcrumbNav");
-  });
-
-  it("should use usePathname hook", () => {
-    const componentPath = path.join(
-      frontendRoot,
-      "src/components/layout/BreadcrumbNav.tsx"
-    );
-    const content = readFile(componentPath);
-    expect(content).toContain("usePathname");
-  });
-
-  it("should have route name mappings", () => {
-    const componentPath = path.join(
-      frontendRoot,
-      "src/components/layout/BreadcrumbNav.tsx"
-    );
-    const content = readFile(componentPath);
-    expect(content).toContain("routeNames");
-    expect(content).toContain("Dashboard");
-    expect(content).toContain("Tasks");
-  });
-
-  it("should have home icon link", () => {
-    const componentPath = path.join(
-      frontendRoot,
-      "src/components/layout/BreadcrumbNav.tsx"
-    );
-    const content = readFile(componentPath);
-    expect(content).toContain("HomeOutlined");
-    expect(content).toContain('href="/"');
+    expect(content).toContain("listTasks");
   });
 });
 
@@ -191,60 +133,43 @@ describe("Dashboard Layout", () => {
     expect(content).toContain("Menu");
   });
 
-  it("should have header with user info", () => {
+  it("should NOT have authentication (simplified)", () => {
     const layoutPath = path.join(
       frontendRoot,
       "src/app/(dashboard)/layout.tsx"
     );
     const content = readFile(layoutPath);
-    expect(content).toContain("Header");
-    expect(content).toContain("user?.username");
-    expect(content).toContain("Avatar");
+    expect(content).not.toContain("useAuth");
+    expect(content).not.toContain("ProtectedRoute");
+    expect(content).not.toContain("logout");
   });
 
-  it("should have logout functionality", () => {
-    const layoutPath = path.join(
-      frontendRoot,
-      "src/app/(dashboard)/layout.tsx"
-    );
-    const content = readFile(layoutPath);
-    expect(content).toContain("LogoutOutlined");
-    expect(content).toContain("logout");
-  });
-
-  it("should use ProtectedRoute", () => {
-    const layoutPath = path.join(
-      frontendRoot,
-      "src/app/(dashboard)/layout.tsx"
-    );
-    const content = readFile(layoutPath);
-    expect(content).toContain("ProtectedRoute");
-  });
-
-  it("should include BreadcrumbNav", () => {
-    const layoutPath = path.join(
-      frontendRoot,
-      "src/app/(dashboard)/layout.tsx"
-    );
-    const content = readFile(layoutPath);
-    expect(content).toContain("BreadcrumbNav");
-  });
-
-  it("should have all navigation items", () => {
+  it("should have simplified navigation items", () => {
     const layoutPath = path.join(
       frontendRoot,
       "src/app/(dashboard)/layout.tsx"
     );
     const content = readFile(layoutPath);
     expect(content).toContain("Dashboard");
+    expect(content).toContain("Agents");
     expect(content).toContain("Tasks");
     expect(content).toContain("Chat");
-    expect(content).toContain("Ghosts");
-    expect(content).toContain("Models");
-    expect(content).toContain("Shells");
-    expect(content).toContain("Bots");
     expect(content).toContain("Teams");
-    expect(content).toContain("Skills");
+    // Old complex resources removed
+    expect(content).not.toContain("Ghosts");
+    expect(content).not.toContain("Models");
+    expect(content).not.toContain("Shells");
+    expect(content).not.toContain("Bots");
+    expect(content).not.toContain("Skills");
+  });
+
+  it("should show Personal Mode indicator", () => {
+    const layoutPath = path.join(
+      frontendRoot,
+      "src/app/(dashboard)/layout.tsx"
+    );
+    const content = readFile(layoutPath);
+    expect(content).toContain("Personal Mode");
   });
 
   it("should be responsive", () => {
@@ -259,24 +184,25 @@ describe("Dashboard Layout", () => {
 });
 
 // =============================================================================
-// Test Suite: Layout Components Index
+// Test Suite: Root Layout (No Auth)
 // =============================================================================
 
-describe("Layout Components Index", () => {
-  it("should have layout components index file", () => {
-    const indexPath = path.join(
-      frontendRoot,
-      "src/components/layout/index.ts"
-    );
-    expect(fileExists(indexPath)).toBe(true);
+describe("Root Layout", () => {
+  it("should have root layout file", () => {
+    const layoutPath = path.join(frontendRoot, "src/app/layout.tsx");
+    expect(fileExists(layoutPath)).toBe(true);
   });
 
-  it("should export BreadcrumbNav", () => {
-    const indexPath = path.join(
-      frontendRoot,
-      "src/components/layout/index.ts"
-    );
-    const content = readFile(indexPath);
-    expect(content).toContain('export * from "./BreadcrumbNav"');
+  it("should NOT have AuthProvider (simplified)", () => {
+    const layoutPath = path.join(frontendRoot, "src/app/layout.tsx");
+    const content = readFile(layoutPath);
+    expect(content).not.toContain("AuthProvider");
+    expect(content).not.toContain("auth-context");
+  });
+
+  it("should have Ant Design ConfigProvider", () => {
+    const layoutPath = path.join(frontendRoot, "src/app/layout.tsx");
+    const content = readFile(layoutPath);
+    expect(content).toContain("ConfigProvider");
   });
 });

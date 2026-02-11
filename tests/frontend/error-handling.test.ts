@@ -1,6 +1,6 @@
 /** Error Handling and User Feedback Tests
  *
- * Tests for Epic 25: Error Handling and User Feedback
+ * Tests for Simplified Frontend - Simple Error Handling
  */
 
 import { describe, it, expect } from "@jest/globals";
@@ -30,232 +30,204 @@ function readFile(filePath: string): string | null {
 const frontendRoot = path.join(__dirname, "../../frontend");
 
 // =============================================================================
-// Test Suite: Error Boundary Component
+// Test Suite: Simple Error Handling
 // =============================================================================
 
-describe("Error Boundary Component", () => {
-  it("should have ErrorBoundary component file", () => {
+describe("Simple Error Handling (Simplified)", () => {
+  it("should NOT have ErrorBoundary component", () => {
     const componentPath = path.join(
       frontendRoot,
       "src/components/error/ErrorBoundary.tsx"
     );
-    expect(fileExists(componentPath)).toBe(true);
+    expect(fileExists(componentPath)).toBe(false);
   });
 
-  it("should export ErrorBoundary class component", () => {
-    const componentPath = path.join(
-      frontendRoot,
-      "src/components/error/ErrorBoundary.tsx"
-    );
-    const content = readFile(componentPath);
-    expect(content).toContain("export class ErrorBoundary");
-    expect(content).toContain("extends Component");
-    expect(content).toContain("componentDidCatch");
-  });
-});
-
-// =============================================================================
-// Test Suite: Toast Notification System
-// =============================================================================
-
-describe("Toast Notification System", () => {
-  it("should use Ant Design message API for notifications", () => {
-    // Check that error handler uses message API
-    const hookPath = path.join(
-      frontendRoot,
-      "src/hooks/useErrorHandler.ts"
-    );
-    const content = readFile(hookPath);
-    expect(content).toContain('import { message } from "antd"');
-    expect(content).toContain("message.error");
+  it("should NOT have error components directory", () => {
+    const dirPath = path.join(frontendRoot, "src/components/error");
+    expect(fileExists(dirPath)).toBe(false);
   });
 
-  it("should show notifications in network status hook", () => {
-    const hookPath = path.join(
-      frontendRoot,
-      "src/hooks/useNetworkStatus.ts"
-    );
-    const content = readFile(hookPath);
-    expect(content).toContain("message");
-    expect(content).toContain("from \"antd\"");
-    expect(content).toContain("message.open");
-    expect(content).toContain("message.success");
-    expect(content).toContain("message.warning");
-  });
-});
-
-// =============================================================================
-// Test Suite: Form Validation
-// =============================================================================
-
-describe("Form Validation", () => {
-  it("should have validation utilities file", () => {
-    const validationPath = path.join(
-      frontendRoot,
-      "src/utils/validation.ts"
-    );
-    expect(fileExists(validationPath)).toBe(true);
+  it("should NOT have useErrorHandler hook", () => {
+    const hookPath = path.join(frontendRoot, "src/hooks/useErrorHandler.ts");
+    expect(fileExists(hookPath)).toBe(false);
   });
 
-  it("should export validation functions", () => {
-    const validationPath = path.join(
-      frontendRoot,
-      "src/utils/validation.ts"
-    );
-    const content = readFile(validationPath);
-    expect(content).toContain("export function validateValue");
-    expect(content).toContain("export function validateForm");
-    expect(content).toContain("export function createValidationRule");
+  it("should NOT have useNetworkStatus hook", () => {
+    const hookPath = path.join(frontendRoot, "src/hooks/useNetworkStatus.ts");
+    expect(fileExists(hookPath)).toBe(false);
   });
 
-  it("should have predefined validation presets", () => {
-    const validationPath = path.join(
-      frontendRoot,
-      "src/utils/validation.ts"
-    );
-    const content = readFile(validationPath);
-    expect(content).toContain("export const validationPresets");
-    expect(content).toContain("username:");
-    expect(content).toContain("password:");
-    expect(content).toContain("email:");
-    expect(content).toContain("resourceName:");
-  });
-});
-
-// =============================================================================
-// Test Suite: Error Handling Components
-// =============================================================================
-
-describe("Error Handling", () => {
-  it("should have root error.tsx file", () => {
+  it("should NOT have root error.tsx file", () => {
     const errorPath = path.join(frontendRoot, "src/app/error.tsx");
-    expect(fileExists(errorPath)).toBe(true);
+    expect(fileExists(errorPath)).toBe(false);
   });
 
-  it("should have dashboard error.tsx file", () => {
+  it("should NOT have dashboard error.tsx file", () => {
     const errorPath = path.join(
       frontendRoot,
       "src/app/(dashboard)/error.tsx"
     );
-    expect(fileExists(errorPath)).toBe(true);
+    expect(fileExists(errorPath)).toBe(false);
   });
 
-  it("should have not-found.tsx file", () => {
+  it("should NOT have not-found.tsx file", () => {
     const notFoundPath = path.join(frontendRoot, "src/app/not-found.tsx");
-    expect(fileExists(notFoundPath)).toBe(true);
+    expect(fileExists(notFoundPath)).toBe(false);
   });
 
-  it("should have error handler hook", () => {
-    const hookPath = path.join(
-      frontendRoot,
-      "src/hooks/useErrorHandler.ts"
-    );
-    expect(fileExists(hookPath)).toBe(true);
-  });
-});
-
-// =============================================================================
-// Test Suite: Skeleton Screens
-// =============================================================================
-
-describe("Skeleton Screens", () => {
-  it("should have SkeletonScreens component file", () => {
+  it("should NOT have SkeletonScreens component", () => {
     const skeletonPath = path.join(
       frontendRoot,
       "src/components/ui/SkeletonScreens.tsx"
     );
-    expect(fileExists(skeletonPath)).toBe(true);
+    expect(fileExists(skeletonPath)).toBe(false);
   });
 
-  it("should export multiple skeleton components", () => {
-    const skeletonPath = path.join(
-      frontendRoot,
-      "src/components/ui/SkeletonScreens.tsx"
-    );
-    const content = readFile(skeletonPath);
-    expect(content).toContain("export function TableSkeleton");
-    expect(content).toContain("export function FormSkeleton");
-    expect(content).toContain("export function DashboardSkeleton");
-  });
-});
-
-// =============================================================================
-// Test Suite: Network Status
-// =============================================================================
-
-describe("Network Status Detection", () => {
-  it("should have useNetworkStatus hook", () => {
-    const hookPath = path.join(
-      frontendRoot,
-      "src/hooks/useNetworkStatus.ts"
-    );
-    expect(fileExists(hookPath)).toBe(true);
-  });
-
-  it("should detect online/offline status", () => {
-    const hookPath = path.join(
-      frontendRoot,
-      "src/hooks/useNetworkStatus.ts"
-    );
-    const content = readFile(hookPath);
-    expect(content).toContain("navigator.onLine");
-    expect(content).toContain("online");
-    expect(content).toContain("offline");
-  });
-});
-
-// =============================================================================
-// Test Suite: Confirmation Dialogs
-// =============================================================================
-
-describe("Confirmation Dialogs", () => {
-  it("should have ConfirmDialog component file", () => {
+  it("should NOT have ConfirmDialog component", () => {
     const dialogPath = path.join(
       frontendRoot,
       "src/components/ui/ConfirmDialog.tsx"
     );
-    expect(fileExists(dialogPath)).toBe(true);
+    expect(fileExists(dialogPath)).toBe(false);
   });
 
-  it("should export confirm functions", () => {
-    const dialogPath = path.join(
+  it("should NOT have UI components directory", () => {
+    const dirPath = path.join(frontendRoot, "src/components/ui");
+    expect(fileExists(dirPath)).toBe(false);
+  });
+
+  it("should NOT have validation utilities", () => {
+    const validationPath = path.join(
       frontendRoot,
-      "src/components/ui/ConfirmDialog.tsx"
+      "src/utils/validation.ts"
     );
-    const content = readFile(dialogPath);
-    expect(content).toContain("export function confirm");
-    expect(content).toContain("export function confirmDelete");
-    expect(content).toContain("export function useConfirmDialog");
+    expect(fileExists(validationPath)).toBe(false);
+  });
+
+  it("should NOT have utils directory", () => {
+    const dirPath = path.join(frontendRoot, "src/utils");
+    expect(fileExists(dirPath)).toBe(false);
   });
 });
 
 // =============================================================================
-// Test Suite: Component Index Files
+// Test Suite: Simple Error Handling in Pages
 // =============================================================================
 
-describe("Component Index Files", () => {
-  it("should have error components index file", () => {
-    const indexPath = path.join(
+describe("Simple Error Handling in Pages", () => {
+  it("should use try/catch in agents page", () => {
+    const pagePath = path.join(
       frontendRoot,
-      "src/components/error/index.ts"
+      "src/app/(dashboard)/agents/page.tsx"
     );
-    expect(fileExists(indexPath)).toBe(true);
+    const content = readFile(pagePath);
+    expect(content).toContain("try");
+    expect(content).toContain("catch");
+    expect(content).toContain("console.error");
   });
 
-  it("should export ErrorBoundary from index", () => {
-    const indexPath = path.join(
+  it("should use Ant Design message for errors in agents page", () => {
+    const pagePath = path.join(
       frontendRoot,
-      "src/components/error/index.ts"
+      "src/app/(dashboard)/agents/page.tsx"
     );
-    const content = readFile(indexPath);
-    expect(content).toContain('export { ErrorBoundary');
+    const content = readFile(pagePath);
+    expect(content).toContain("message.error");
   });
 
-  it("should have UI components index file", () => {
-    const indexPath = path.join(
+  it("should use try/catch in tasks page", () => {
+    const pagePath = path.join(
       frontendRoot,
-      "src/components/ui/index.ts"
+      "src/app/(dashboard)/tasks/page.tsx"
     );
-    expect(fileExists(indexPath)).toBe(true);
+    const content = readFile(pagePath);
+    expect(content).toContain("try");
+    expect(content).toContain("catch");
+    expect(content).toContain("console.error");
+  });
+
+  it("should use Ant Design message for errors in tasks page", () => {
+    const pagePath = path.join(
+      frontendRoot,
+      "src/app/(dashboard)/tasks/page.tsx"
+    );
+    const content = readFile(pagePath);
+    expect(content).toContain("message.error");
+  });
+
+  it("should use try/catch in teams page", () => {
+    const pagePath = path.join(
+      frontendRoot,
+      "src/app/(dashboard)/teams/page.tsx"
+    );
+    const content = readFile(pagePath);
+    expect(content).toContain("try");
+    expect(content).toContain("catch");
+    expect(content).toContain("console.error");
+  });
+
+  it("should use Ant Design message for errors in teams page", () => {
+    const pagePath = path.join(
+      frontendRoot,
+      "src/app/(dashboard)/teams/page.tsx"
+    );
+    const content = readFile(pagePath);
+    expect(content).toContain("message.error");
+  });
+});
+
+// =============================================================================
+// Test Suite: Simple API Client
+// =============================================================================
+
+describe("Simple API Client", () => {
+  it("should have simple api client file", () => {
+    const apiPath = path.join(frontendRoot, "src/lib/api.ts");
+    expect(fileExists(apiPath)).toBe(true);
+  });
+
+  it("should use basic fetch (not axios)", () => {
+    const apiPath = path.join(frontendRoot, "src/lib/api.ts");
+    const content = readFile(apiPath);
+    expect(content).toContain("fetch");
+    expect(content).not.toContain("axios");
+  });
+
+  it("should NOT have complex interceptors", () => {
+    const apiPath = path.join(frontendRoot, "src/lib/api.ts");
+    const content = readFile(apiPath);
+    // Check for actual interceptor usage pattern (axios-style)
+    expect(content).not.toContain("interceptors.request");
+    expect(content).not.toContain("interceptors.response");
+  });
+
+  it("should have simple get method", () => {
+    const apiPath = path.join(frontendRoot, "src/lib/api.ts");
+    const content = readFile(apiPath);
+    expect(content).toContain("get:");
+  });
+
+  it("should have simple post method", () => {
+    const apiPath = path.join(frontendRoot, "src/lib/api.ts");
+    const content = readFile(apiPath);
+    expect(content).toContain("post:");
+  });
+
+  it("should have simple put method", () => {
+    const apiPath = path.join(frontendRoot, "src/lib/api.ts");
+    const content = readFile(apiPath);
+    expect(content).toContain("put:");
+  });
+
+  it("should have simple patch method", () => {
+    const apiPath = path.join(frontendRoot, "src/lib/api.ts");
+    const content = readFile(apiPath);
+    expect(content).toContain("patch:");
+  });
+
+  it("should have simple delete method", () => {
+    const apiPath = path.join(frontendRoot, "src/lib/api.ts");
+    const content = readFile(apiPath);
+    expect(content).toContain("delete:");
   });
 });
