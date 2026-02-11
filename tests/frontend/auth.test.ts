@@ -70,11 +70,11 @@ describe("Authentication Removed (Simplified)", () => {
 // =============================================================================
 
 describe("Dashboard Direct Access (No Auth)", () => {
-  it("should have root page that redirects to dashboard", () => {
+  it("should NOT have separate root page (dashboard serves root directly)", () => {
+    // The dashboard at (dashboard)/page.tsx serves the root path directly
+    // No redirect needed since route groups don't affect URL structure
     const pagePath = path.join(frontendRoot, "src/app/page.tsx");
-    expect(fileExists(pagePath)).toBe(true);
-    const content = readFile(pagePath);
-    expect(content).toContain('redirect("/")');
+    expect(fileExists(pagePath)).toBe(false);
   });
 
   it("should NOT have ProtectedRoute in layout", () => {
