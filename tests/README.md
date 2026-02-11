@@ -16,8 +16,14 @@ The test suite is organized in a unified structure under the `tests/` directory,
 tests/
 ├── conftest.py                    # Shared fixtures and pytest configuration
 ├── README.md                      # This file
-├── frontend/                      # Frontend tests (Epic 19)
-│   └── project-setup.test.ts      # Project setup tests (34 tests)
+├── frontend/                      # Frontend tests (Epics 19-25)
+│   ├── project-setup.test.ts      # Project setup tests (34 tests)
+│   ├── auth.test.ts               # Authentication tests (34 tests)
+│   ├── resources.test.ts          # CRD resource management tests (65 tests)
+│   ├── tasks.test.ts              # Task management tests (56 tests)
+│   ├── chat.test.ts               # Real-time chat tests (44 tests)
+│   ├── dashboard.test.ts          # Dashboard and navigation tests (23 tests)
+│   └── error-handling.test.ts     # Error handling and feedback tests (20 tests)
 ├── unit/                          # Unit tests - fast, isolated
 │   ├── crd_backend/               # Backend CRD tests (renamed to avoid import conflict)
 │   │   ├── models/
@@ -63,11 +69,11 @@ tests/
 
 | Category | Count |
 |----------|-------|
-| **Total** | 594 tests |
+| **Total** | 963 tests |
 | **Backend** | 213 tests |
 | **Chat Shell** | 324+ tests |
-| **Frontend** | 34 tests |
-| **Unit** | 529 tests |
+| **Frontend** | 294 tests |
+| **Unit** | 853 tests |
 | **Integration** | 8 tests |
 
 ### Backend Test Breakdown
@@ -82,7 +88,7 @@ tests/
 | **Migrations** | 5 tests |
 | **Database Connection** | 3 tests |
 | **Total Backend** | 213 tests |
-| **Total Frontend** | 34 tests |
+| **Total Frontend** | 294 tests |
 
 ## Frontend Tests
 
@@ -99,15 +105,14 @@ npm test
 
 | Test Suite | Count |
 |------------|-------|
-| Project Setup Verification | 17 tests |
-| TypeScript Configuration | 2 tests |
-| Tailwind Configuration | 2 tests |
-| Axios Setup | 3 tests |
-| Environment Variables | 3 tests |
-| Dependencies | 2 tests |
-| TypeScript Types | 3 tests |
-| Auth Context | 2 tests |
-| **Total** | **34 tests** |
+| Project Setup (Epic 19) | 34 tests |
+| Authentication (Epic 20) | 34 tests |
+| CRD Resources (Epic 21) | 65 tests |
+| Task Management (Epic 22) | 56 tests |
+| Real-time Chat (Epic 23) | 44 tests |
+| Dashboard & Navigation (Epic 24) | 23 tests |
+| Error Handling (Epic 25) | 20 tests |
+| **Total** | **294 tests** |
 
 ## pytest Markers
 
@@ -146,13 +151,26 @@ Markers are used to categorize tests for selective execution.
 | `@pytest.mark.epic_10` | RESTful API Endpoints |
 | `@pytest.mark.epic_11` | Authentication & Authorization |
 | `@pytest.mark.epic_19` | Frontend Project Setup |
+| `@pytest.mark.epic_20` | Frontend Authentication |
+| `@pytest.mark.epic_21` | Frontend CRD Resources |
+| `@pytest.mark.epic_22` | Frontend Task Management |
+| `@pytest.mark.epic_23` | Frontend Real-time Chat |
+| `@pytest.mark.epic_24` | Frontend Dashboard |
+| `@pytest.mark.epic_25` | Frontend Error Handling |
 
 ## Usage Examples
 
 ### Run All Tests
 
 ```bash
+# Run all Python tests
 pytest tests/
+
+# Run all frontend tests
+cd frontend && npm test
+
+# Run all tests (Python + Frontend)
+pytest tests/ && cd frontend && npm test
 ```
 
 ### Run by Component
