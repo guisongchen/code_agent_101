@@ -27,7 +27,13 @@ interface UseResourcesReturn<T> {
   setCurrentNamespace: (namespace: string) => void;
 }
 
-export function useResources<T extends { name: string; namespace: string }>({
+// Helper to extract namespace from resource with metadata
+function getNamespace<T>(resource: T): string {
+  const r = resource as { metadata?: { namespace?: string }; namespace?: string };
+  return r.metadata?.namespace || r.namespace || "default";
+}
+
+export function useResources<T>({
   listFn,
   createFn,
   updateFn,
@@ -54,10 +60,10 @@ export function useResources<T extends { name: string; namespace: string }>({
 
       // Extract unique namespaces from resources
       const uniqueNamespaces = Array.from(
-        new Set(response.items.map((r) => r.namespace))
+        new Set(response.items.map((r) => getNamespace(r)))
       );
       if (uniqueNamespaces.length > 0) {
-        setNamespaces((prev) =
+        setNamespaces((prev) =>
           Array.from(new Set([...prev, ...uniqueNamespaces]))
         );
       }

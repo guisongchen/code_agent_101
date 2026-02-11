@@ -11,7 +11,7 @@ import type { ColumnsType } from "antd/es/table";
 import { ResourceList, ResourceForm, ResourceFormData } from "@/components/resources";
 import { useResources } from "@/hooks/useResources";
 import { teamApi } from "@/services/resources";
-import type { TeamResponse } from "@/types";
+import type { TeamResponse, TeamCreateRequest } from "@/types";
 
 const { Text } = Typography;
 
@@ -19,6 +19,7 @@ interface TeamListItem {
   id: string;
   name: string;
   namespace: string;
+  kind: string;
   members: number;
   strategy: string;
   description: string;
@@ -50,6 +51,7 @@ export default function TeamsPage() {
     id: team.id,
     name: team.metadata.name,
     namespace: team.metadata.namespace,
+    kind: "Team",
     members: team.spec.members?.length || 0,
     strategy: team.spec.coordinationStrategy || "-",
     description: team.spec.description || "-",
@@ -106,20 +108,18 @@ export default function TeamsPage() {
   };
 
   const handleSubmit = async (values: ResourceFormData) => {
+    const data: TeamCreateRequest = {
+      metadata: values.metadata,
+      spec: values.spec as unknown as TeamCreateRequest["spec"],
+    };
     if (editingTeam) {
       await updateResource(
         editingTeam.metadata.name,
-        {
-          metadata: values.metadata,
-          spec: values.spec,
-        },
+        data,
         editingTeam.metadata.namespace
       );
     } else {
-      await createResource({
-        metadata: values.metadata,
-        spec: values.spec,
-      });
+      await createResource(data);
     }
     setFormOpen(false);
     await fetchResources();
@@ -132,7 +132,7 @@ export default function TeamsPage() {
           namespace: editingTeam.metadata.namespace,
           description: editingTeam.spec.description,
         },
-        spec: editingTeam.spec,
+        spec: editingTeam.spec as unknown as Record<string, unknown>,
       }
     : undefined;
 

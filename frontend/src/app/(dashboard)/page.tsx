@@ -259,7 +259,7 @@ export default function DashboardPage() {
                     <div>
                       <Text strong>{task.name}</Text>
                       <div>
-                        <Tag color={statusColors[task.status]} size="small">
+                        <Tag color={statusColors[task.status]}>
                           {task.status}
                         </Tag>
                         <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>

@@ -11,7 +11,7 @@ import type { ColumnsType } from "antd/es/table";
 import { ResourceList, ResourceForm, ResourceFormData } from "@/components/resources";
 import { useResources } from "@/hooks/useResources";
 import { botApi } from "@/services/resources";
-import type { BotResponse } from "@/types";
+import type { BotResponse, BotCreateRequest } from "@/types";
 
 const { Text } = Typography;
 
@@ -19,6 +19,7 @@ interface BotListItem {
   id: string;
   name: string;
   namespace: string;
+  kind: string;
   ghost: string;
   model: string;
   shell: string;
@@ -51,6 +52,7 @@ export default function BotsPage() {
     id: bot.id,
     name: bot.metadata.name,
     namespace: bot.metadata.namespace,
+    kind: "Bot",
     ghost: bot.spec.ghostRef?.name || "-",
     model: bot.spec.modelRef?.name || "-",
     shell: bot.spec.shellRef?.name || "-",
@@ -114,20 +116,18 @@ export default function BotsPage() {
   };
 
   const handleSubmit = async (values: ResourceFormData) => {
+    const data: BotCreateRequest = {
+      metadata: values.metadata,
+      spec: values.spec as unknown as BotCreateRequest["spec"],
+    };
     if (editingBot) {
       await updateResource(
         editingBot.metadata.name,
-        {
-          metadata: values.metadata,
-          spec: values.spec,
-        },
+        data,
         editingBot.metadata.namespace
       );
     } else {
-      await createResource({
-        metadata: values.metadata,
-        spec: values.spec,
-      });
+      await createResource(data);
     }
     setFormOpen(false);
     await fetchResources();
@@ -140,7 +140,7 @@ export default function BotsPage() {
           namespace: editingBot.metadata.namespace,
           description: editingBot.spec.description,
         },
-        spec: editingBot.spec,
+        spec: editingBot.spec as unknown as Record<string, unknown>,
       }
     : undefined;
 

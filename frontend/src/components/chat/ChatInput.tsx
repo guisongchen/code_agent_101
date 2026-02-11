@@ -5,6 +5,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Input, Button, Space, Tooltip } from "antd";
+import type { TextAreaRef } from "antd/es/input/TextArea";
 import {
   SendOutlined,
   StopOutlined,
@@ -29,7 +30,7 @@ export function ChatInput({
   placeholder = "Type a message...",
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<TextAreaRef>(null);
 
   const handleSend = () => {
     if (message.trim() && !isStreaming) {

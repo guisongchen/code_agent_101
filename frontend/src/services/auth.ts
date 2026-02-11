@@ -20,16 +20,7 @@ import {
  * Login user with username and password
  */
 export async function login(credentials: LoginRequest): Promise<Token> {
-  // Use form data for OAuth2 password flow
-  const formData = new URLSearchParams();
-  formData.append("username", credentials.username);
-  formData.append("password", credentials.password);
-
-  const response = await api.post<Token>("/auth/login", formData, {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-  });
+  const response = await api.post<Token>("/auth/login", credentials);
   return response.data;
 }
 

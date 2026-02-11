@@ -207,8 +207,10 @@ export function useFormErrorHandler(): UseFormErrorHandlerReturn {
       const errors: FormError[] = [];
 
       // Handle FastAPI validation error format
-      if (Array.isArray(apiError.detail)) {
-        apiError.detail.forEach((err: { loc?: string[]; msg?: string }) => {
+      const detail = apiError.detail as unknown[];
+      if (Array.isArray(detail)) {
+        detail.forEach((item) => {
+          const err = item as { loc?: string[]; msg?: string };
           if (err.loc && err.msg) {
             const field = err.loc[err.loc.length - 1];
             errors.push({ field, message: err.msg });

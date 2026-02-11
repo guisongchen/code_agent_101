@@ -58,7 +58,7 @@ export function BreadcrumbNav() {
 
     items.push({
       title: isLast ? (
-        title
+        <span>{title}</span>
       ) : (
         <Link href={currentPath}>{title}</Link>
       ),

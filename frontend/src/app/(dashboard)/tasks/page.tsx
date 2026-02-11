@@ -42,6 +42,7 @@ interface TaskListItem {
   id: string;
   name: string;
   namespace: string;
+  kind: string;
   status: TaskStatus;
   teamId?: string;
   teamName?: string;
@@ -115,6 +116,7 @@ export default function TasksPage() {
     id: task.id,
     name: task.name,
     namespace: task.namespace,
+    kind: "Task",
     status: task.status,
     teamId: task.teamId,
     teamName: task.teamId ? teamMap.get(task.teamId) : undefined,
@@ -361,7 +363,7 @@ export default function TasksPage() {
         columns={columns}
         onCreate={() => setCreateModalOpen(true)}
         onEdit={() => {}} // Tasks don't have edit, use view instead
-        onDelete={() => {}} // Handled inline
+        onDelete={async () => {}} // Handled inline
         onNamespaceChange={setCurrentNamespace}
         createButtonText="Create Task"
       />

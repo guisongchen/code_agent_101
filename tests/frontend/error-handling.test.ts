@@ -73,7 +73,7 @@ describe("Toast Notification System", () => {
   it("should show notifications in network status hook", () => {
     const hookPath = path.join(
       frontendRoot,
-      "src/hooks/useNetworkStatus.ts"
+      "src/hooks/useNetworkStatus.tsx"
     );
     const content = readFile(hookPath);
     expect(content).toContain("message");
@@ -187,7 +187,7 @@ describe("Network Status Detection", () => {
   it("should have useNetworkStatus hook", () => {
     const hookPath = path.join(
       frontendRoot,
-      "src/hooks/useNetworkStatus.ts"
+      "src/hooks/useNetworkStatus.tsx"
     );
     expect(fileExists(hookPath)).toBe(true);
   });
@@ -195,7 +195,7 @@ describe("Network Status Detection", () => {
   it("should detect online/offline status", () => {
     const hookPath = path.join(
       frontendRoot,
-      "src/hooks/useNetworkStatus.ts"
+      "src/hooks/useNetworkStatus.tsx"
     );
     const content = readFile(hookPath);
     expect(content).toContain("navigator.onLine");

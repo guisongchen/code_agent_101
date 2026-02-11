@@ -11,7 +11,7 @@ import type { ColumnsType } from "antd/es/table";
 import { ResourceList, ResourceForm, ResourceFormData } from "@/components/resources";
 import { useResources } from "@/hooks/useResources";
 import { ghostApi } from "@/services/resources";
-import type { GhostResponse } from "@/types";
+import type { GhostResponse, GhostCreateRequest } from "@/types";
 
 const { Text } = Typography;
 
@@ -19,6 +19,7 @@ interface GhostListItem {
   id: string;
   name: string;
   namespace: string;
+  kind: string;
   description: string;
   createdAt: string;
 }
@@ -49,6 +50,7 @@ export default function GhostsPage() {
     id: ghost.id,
     name: ghost.metadata.name,
     namespace: ghost.metadata.namespace,
+    kind: "Ghost",
     description: ghost.spec.description || "-",
     createdAt: ghost.metadata.createdAt || "-",
   }));
@@ -98,20 +100,18 @@ export default function GhostsPage() {
   };
 
   const handleSubmit = async (values: ResourceFormData) => {
+    const data: GhostCreateRequest = {
+      metadata: values.metadata,
+      spec: values.spec as unknown as GhostCreateRequest["spec"],
+    };
     if (editingGhost) {
       await updateResource(
         editingGhost.metadata.name,
-        {
-          metadata: values.metadata,
-          spec: values.spec,
-        },
+        data,
         editingGhost.metadata.namespace
       );
     } else {
-      await createResource({
-        metadata: values.metadata,
-        spec: values.spec,
-      });
+      await createResource(data);
     }
     setFormOpen(false);
     await fetchResources();
@@ -124,7 +124,7 @@ export default function GhostsPage() {
           namespace: editingGhost.metadata.namespace,
           description: editingGhost.spec.description,
         },
-        spec: editingGhost.spec,
+        spec: editingGhost.spec as unknown as Record<string, unknown>,
       }
     : undefined;
 

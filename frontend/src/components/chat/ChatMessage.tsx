@@ -229,7 +229,7 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
           </Card>
 
           {/* Show thinking if available */}
-          {message.meta?.thinking && (
+          {typeof message.meta?.thinking === "string" && message.meta.thinking && (
             <Collapse ghost style={{ marginTop: 8 }}>
               <Panel
                 header={<Text type="secondary">Thinking Process</Text>}
@@ -243,7 +243,7 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
                     fontStyle: "italic",
                   }}
                 >
-                  {message.meta.thinking as string}
+                  {message.meta.thinking}
                 </Paragraph>
               </Panel>
             </Collapse>

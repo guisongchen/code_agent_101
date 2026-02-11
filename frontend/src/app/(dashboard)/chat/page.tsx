@@ -95,7 +95,7 @@ export default function ChatPage() {
           {selectedTaskId ? (
             <ChatContainer
               taskId={selectedTaskId}
-              token={token || undefined}
+              token={token?.accessToken}
               title={`Chat: ${selectedTask?.name || "Task"}`}
             />
           ) : (

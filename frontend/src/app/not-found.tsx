@@ -4,6 +4,8 @@
  * Displayed when users access non-existent routes or resources
  */
 
+"use client";
+
 import Link from "next/link";
 import { Result, Button, Space } from "antd";
 import {

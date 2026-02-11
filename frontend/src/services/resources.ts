@@ -95,9 +95,9 @@ export const ghostApi = {
     listResources<GhostResponse>("ghost", options),
   get: (name: string, namespace?: string) =>
     getResource<GhostResponse>("ghost", name, namespace),
-  create: (data: GhostCreateRequest) =>
+  create: (data: unknown) =>
     createResource<GhostResponse>("ghost", data),
-  update: (name: string, data: GhostCreateRequest, namespace?: string) =>
+  update: (name: string, data: unknown, namespace?: string) =>
     updateResource<GhostResponse>("ghost", name, data, namespace),
   delete: (name: string, namespace?: string) =>
     deleteResource("ghost", name, namespace),
@@ -112,9 +112,9 @@ export const modelApi = {
     listResources<ModelResponse>("model", options),
   get: (name: string, namespace?: string) =>
     getResource<ModelResponse>("model", name, namespace),
-  create: (data: ModelCreateRequest) =>
+  create: (data: unknown) =>
     createResource<ModelResponse>("model", data),
-  update: (name: string, data: ModelCreateRequest, namespace?: string) =>
+  update: (name: string, data: unknown, namespace?: string) =>
     updateResource<ModelResponse>("model", name, data, namespace),
   delete: (name: string, namespace?: string) =>
     deleteResource("model", name, namespace),
@@ -129,9 +129,9 @@ export const shellApi = {
     listResources<ShellResponse>("shell", options),
   get: (name: string, namespace?: string) =>
     getResource<ShellResponse>("shell", name, namespace),
-  create: (data: ShellCreateRequest) =>
+  create: (data: unknown) =>
     createResource<ShellResponse>("shell", data),
-  update: (name: string, data: ShellCreateRequest, namespace?: string) =>
+  update: (name: string, data: unknown, namespace?: string) =>
     updateResource<ShellResponse>("shell", name, data, namespace),
   delete: (name: string, namespace?: string) =>
     deleteResource("shell", name, namespace),
@@ -146,9 +146,9 @@ export const botApi = {
     listResources<BotResponse>("bot", options),
   get: (name: string, namespace?: string) =>
     getResource<BotResponse>("bot", name, namespace),
-  create: (data: BotCreateRequest) =>
+  create: (data: unknown) =>
     createResource<BotResponse>("bot", data),
-  update: (name: string, data: BotCreateRequest, namespace?: string) =>
+  update: (name: string, data: unknown, namespace?: string) =>
     updateResource<BotResponse>("bot", name, data, namespace),
   delete: (name: string, namespace?: string) =>
     deleteResource("bot", name, namespace),
@@ -163,9 +163,9 @@ export const teamApi = {
     listResources<TeamResponse>("team", options),
   get: (name: string, namespace?: string) =>
     getResource<TeamResponse>("team", name, namespace),
-  create: (data: TeamCreateRequest) =>
+  create: (data: unknown) =>
     createResource<TeamResponse>("team", data),
-  update: (name: string, data: TeamCreateRequest, namespace?: string) =>
+  update: (name: string, data: unknown, namespace?: string) =>
     updateResource<TeamResponse>("team", name, data, namespace),
   delete: (name: string, namespace?: string) =>
     deleteResource("team", name, namespace),
@@ -180,9 +180,9 @@ export const skillApi = {
     listResources<SkillResponse>("skill", options),
   get: (name: string, namespace?: string) =>
     getResource<SkillResponse>("skill", name, namespace),
-  create: (data: SkillCreateRequest) =>
+  create: (data: unknown) =>
     createResource<SkillResponse>("skill", data),
-  update: (name: string, data: SkillCreateRequest, namespace?: string) =>
+  update: (name: string, data: unknown, namespace?: string) =>
     updateResource<SkillResponse>("skill", name, data, namespace),
   delete: (name: string, namespace?: string) =>
     deleteResource("skill", name, namespace),

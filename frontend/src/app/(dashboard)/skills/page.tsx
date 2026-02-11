@@ -11,7 +11,7 @@ import type { ColumnsType } from "antd/es/table";
 import { ResourceList, ResourceForm, ResourceFormData } from "@/components/resources";
 import { useResources } from "@/hooks/useResources";
 import { skillApi } from "@/services/resources";
-import type { SkillResponse } from "@/types";
+import type { SkillResponse, SkillCreateRequest } from "@/types";
 
 const { Text } = Typography;
 
@@ -19,6 +19,7 @@ interface SkillListItem {
   id: string;
   name: string;
   namespace: string;
+  kind: string;
   version: string;
   author: string;
   tools: number;
@@ -51,6 +52,7 @@ export default function SkillsPage() {
     id: skill.id,
     name: skill.metadata.name,
     namespace: skill.metadata.namespace,
+    kind: "Skill",
     version: skill.spec.version || "-",
     author: skill.spec.author || "-",
     tools: skill.spec.tools?.length || 0,
@@ -113,20 +115,18 @@ export default function SkillsPage() {
   };
 
   const handleSubmit = async (values: ResourceFormData) => {
+    const data: SkillCreateRequest = {
+      metadata: values.metadata,
+      spec: values.spec as unknown as SkillCreateRequest["spec"],
+    };
     if (editingSkill) {
       await updateResource(
         editingSkill.metadata.name,
-        {
-          metadata: values.metadata,
-          spec: values.spec,
-        },
+        data,
         editingSkill.metadata.namespace
       );
     } else {
-      await createResource({
-        metadata: values.metadata,
-        spec: values.spec,
-      });
+      await createResource(data);
     }
     setFormOpen(false);
     await fetchResources();
@@ -139,7 +139,7 @@ export default function SkillsPage() {
           namespace: editingSkill.metadata.namespace,
           description: editingSkill.spec.description,
         },
-        spec: editingSkill.spec,
+        spec: editingSkill.spec as unknown as Record<string, unknown>,
       }
     : undefined;
 

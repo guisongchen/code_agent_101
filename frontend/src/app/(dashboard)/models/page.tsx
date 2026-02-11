@@ -11,7 +11,7 @@ import type { ColumnsType } from "antd/es/table";
 import { ResourceList, ResourceForm, ResourceFormData } from "@/components/resources";
 import { useResources } from "@/hooks/useResources";
 import { modelApi } from "@/services/resources";
-import type { ModelResponse } from "@/types";
+import type { ModelResponse, ModelCreateRequest } from "@/types";
 
 const { Text } = Typography;
 
@@ -19,6 +19,7 @@ interface ModelListItem {
   id: string;
   name: string;
   namespace: string;
+  kind: string;
   provider: string;
   modelName: string;
   description: string;
@@ -50,6 +51,7 @@ export default function ModelsPage() {
     id: model.id,
     name: model.metadata.name,
     namespace: model.metadata.namespace,
+    kind: "Model",
     provider: model.spec.config?.provider || "-",
     modelName: model.spec.config?.modelName || "-",
     description: model.spec.description || "-",
@@ -105,20 +107,18 @@ export default function ModelsPage() {
   };
 
   const handleSubmit = async (values: ResourceFormData) => {
+    const data: ModelCreateRequest = {
+      metadata: values.metadata,
+      spec: values.spec as unknown as ModelCreateRequest["spec"],
+    };
     if (editingModel) {
       await updateResource(
         editingModel.metadata.name,
-        {
-          metadata: values.metadata,
-          spec: values.spec,
-        },
+        data,
         editingModel.metadata.namespace
       );
     } else {
-      await createResource({
-        metadata: values.metadata,
-        spec: values.spec,
-      });
+      await createResource(data);
     }
     setFormOpen(false);
     await fetchResources();
@@ -131,7 +131,7 @@ export default function ModelsPage() {
           namespace: editingModel.metadata.namespace,
           description: editingModel.spec.description,
         },
-        spec: editingModel.spec,
+        spec: editingModel.spec as unknown as Record<string, unknown>,
       }
     : undefined;
 

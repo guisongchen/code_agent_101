@@ -323,3 +323,38 @@ describe("Auth Context", () => {
     expect(content).toContain("ProtectedRoute");
   });
 });
+
+// =============================================================================
+// Test Suite: Build Verification
+// =============================================================================
+
+describe("Build Verification", () => {
+  it("should have a build script", () => {
+    const packagePath = path.join(projectRoot, "package.json");
+    const content = readFile(packagePath);
+    expect(content).not.toBeNull();
+
+    const pkg = JSON.parse(content!);
+    expect(pkg.scripts.build).toBeDefined();
+  });
+
+  it("should have next.config.ts or next.config.js", () => {
+    const tsConfig = path.join(projectRoot, "next.config.ts");
+    const jsConfig = path.join(projectRoot, "next.config.js");
+    const mjsConfig = path.join(projectRoot, "next.config.mjs");
+
+    const hasConfig = fileExists(tsConfig) || fileExists(jsConfig) || fileExists(mjsConfig);
+    expect(hasConfig).toBe(true);
+  });
+
+  it("should have TypeScript configuration", () => {
+    const tsConfig = path.join(projectRoot, "tsconfig.json");
+    expect(fileExists(tsConfig)).toBe(true);
+
+    const content = readFile(tsConfig);
+    expect(content).not.toBeNull();
+
+    const config = JSON.parse(content!);
+    expect(config.compilerOptions.strict).toBe(true);
+  });
+});
